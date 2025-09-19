@@ -165,101 +165,460 @@ class SEOAuditTool {
             recommendations: []
         };
 
-        // Technical SEO findings
-        if (this.formData.pageLoadSpeed && parseFloat(this.formData.pageLoadSpeed) > 3) {
-            findings.technical.push({
-                title: 'Page Load Speed Issues',
-                description: `Website loads in ${this.formData.pageLoadSpeed} seconds. Recommended load time is under 3 seconds.`,
-                severity: 'poor'
-            });
-            findings.recommendations.push({
-                title: 'Optimize Page Load Speed',
-                description: 'Implement image optimization, enable compression, and leverage browser caching.',
-                priority: 'high'
-            });
+        // TECHNICAL SEO ANALYSIS - Comprehensive findings
+        
+        // Page Load Speed Analysis
+        const speed = parseFloat(this.formData.pageLoadSpeed) || 0;
+        if (speed > 0) {
+            if (speed > 4) {
+                findings.technical.push({
+                    title: 'Critical Page Speed Issues',
+                    description: `Website loads in ${speed} seconds, which is significantly above the recommended 2-3 seconds. This severely impacts user experience and search rankings. Studies show that 40% of users abandon sites that take more than 3 seconds to load.`,
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Urgent Page Speed Optimization',
+                    description: 'Implement immediate speed improvements: compress images (aim for under 100KB), minify CSS/JS files, enable GZIP compression, optimize server response time, and consider using a CDN. Expected improvement: 2-3 second reduction in load time.',
+                    priority: 'high'
+                });
+            } else if (speed > 3) {
+                findings.technical.push({
+                    title: 'Page Speed Optimization Needed',
+                    description: `Current load time of ${speed} seconds exceeds Google's recommended 2-3 seconds. This impacts user experience and may affect search rankings.`,
+                    severity: 'fair'
+                });
+                findings.recommendations.push({
+                    title: 'Optimize Page Loading Performance',
+                    description: 'Optimize images, leverage browser caching, and minify resources to achieve under 3-second load times.',
+                    priority: 'medium'
+                });
+            }
         }
 
+        // Core Web Vitals Analysis
+        const cwv = parseInt(this.formData.coreWebVitals) || 0;
+        if (cwv > 0) {
+            if (cwv < 50) {
+                findings.technical.push({
+                    title: 'Poor Core Web Vitals Performance',
+                    description: `Core Web Vitals score of ${cwv}/100 indicates significant performance issues. This directly impacts Google rankings as Core Web Vitals are official ranking factors. Issues likely include poor Largest Contentful Paint (LCP), First Input Delay (FID), and Cumulative Layout Shift (CLS).`,
+                    severity: 'poor'
+                });
+            } else if (cwv < 75) {
+                findings.technical.push({
+                    title: 'Core Web Vitals Need Improvement',
+                    description: `Score of ${cwv}/100 suggests moderate performance issues that should be addressed to improve user experience and search rankings.`,
+                    severity: 'fair'
+                });
+            }
+        }
+
+        // Mobile Responsiveness Analysis
+        if (this.formData.mobileResponsive) {
+            const mobileQuality = this.formData.mobileResponsive;
+            if (mobileQuality === 'poor') {
+                findings.technical.push({
+                    title: 'Critical Mobile Usability Issues',
+                    description: 'Website has significant mobile compatibility problems. With over 60% of searches happening on mobile devices, this severely impacts user experience and search rankings. Issues may include non-responsive design, touch elements too close together, viewport not set, and content wider than screen.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Implement Mobile-First Responsive Design',
+                    description: 'Redesign with mobile-first approach, ensure proper viewport meta tag, implement touch-friendly navigation, and test across multiple devices. This is critical for both user experience and Google rankings.',
+                    priority: 'high'
+                });
+            } else if (mobileQuality === 'fair') {
+                findings.technical.push({
+                    title: 'Mobile Experience Improvements Needed',
+                    description: 'Mobile experience has some issues that should be addressed. While functional, optimizations could improve user engagement and search performance.',
+                    severity: 'fair'
+                });
+            }
+        }
+
+        // SSL Certificate Analysis
         if (this.formData.sslCertificate === 'no') {
             findings.technical.push({
-                title: 'Missing SSL Certificate',
-                description: 'Website is not secured with HTTPS. This affects both security and SEO rankings.',
+                title: 'Missing HTTPS Security Protocol',
+                description: 'Website lacks SSL encryption (HTTPS), which is a confirmed Google ranking factor since 2014. This creates security warnings in browsers, reduces user trust, and negatively impacts search rankings. Modern browsers actively warn users about non-HTTPS sites, especially those collecting form data.',
                 severity: 'poor'
             });
             findings.recommendations.push({
-                title: 'Install SSL Certificate',
-                description: 'Obtain and install an SSL certificate to enable HTTPS.',
+                title: 'Install SSL Certificate Immediately',
+                description: 'Obtain and install an SSL certificate to enable HTTPS. Most hosting providers offer free SSL certificates. Update all internal links to HTTPS and implement 301 redirects from HTTP to HTTPS versions.',
                 priority: 'high'
             });
         }
 
-        if (this.formData.mobileResponsive === 'poor' || this.formData.mobileResponsive === 'fair') {
-            findings.technical.push({
-                title: 'Mobile Responsiveness Issues',
-                description: 'Website has mobile compatibility issues affecting user experience.',
-                severity: this.formData.mobileResponsive
-            });
-            findings.recommendations.push({
-                title: 'Improve Mobile Experience',
-                description: 'Implement responsive design to ensure optimal mobile user experience.',
-                priority: 'high'
-            });
+        // XML Sitemap Analysis
+        if (this.formData.xmlSitemap) {
+            const sitemapStatus = this.formData.xmlSitemap;
+            if (sitemapStatus === 'missing') {
+                findings.technical.push({
+                    title: 'Missing XML Sitemap',
+                    description: 'No XML sitemap detected. Sitemaps help search engines discover and index your content efficiently. Without one, search engines may miss important pages or take longer to discover new content.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Create and Submit XML Sitemap',
+                    description: 'Generate an XML sitemap including all important pages, submit to Google Search Console and Bing Webmaster Tools, and keep it updated automatically.',
+                    priority: 'medium'
+                });
+            } else if (sitemapStatus === 'outdated') {
+                findings.technical.push({
+                    title: 'Outdated XML Sitemap',
+                    description: 'XML sitemap exists but appears outdated. This can mislead search engines and prevent proper indexing of new content.',
+                    severity: 'fair'
+                });
+            }
         }
 
-        // On-Page SEO findings
-        if (this.formData.titleTags === 'poor' || this.formData.titleTags === 'fair') {
-            findings.onPage.push({
-                title: 'Title Tag Optimization Needed',
-                description: 'Title tags require optimization for better search engine visibility.',
-                severity: this.formData.titleTags
-            });
-            findings.recommendations.push({
-                title: 'Optimize Title Tags',
-                description: 'Create unique, descriptive title tags for each page including primary keywords.',
-                priority: 'high'
-            });
+        // Robots.txt Analysis
+        if (this.formData.robotsTxt) {
+            const robotsStatus = this.formData.robotsTxt;
+            if (robotsStatus === 'missing') {
+                findings.technical.push({
+                    title: 'Missing Robots.txt File',
+                    description: 'No robots.txt file found. While not mandatory, robots.txt helps guide search engine crawlers and can prevent indexing of sensitive or duplicate content.',
+                    severity: 'fair'
+                });
+            } else if (robotsStatus === 'issues') {
+                findings.technical.push({
+                    title: 'Robots.txt Configuration Issues',
+                    description: 'Robots.txt file has configuration problems that may be blocking important content from search engines or allowing access to pages that should be restricted.',
+                    severity: 'poor'
+                });
+            }
         }
 
-        if (this.formData.metaDescriptions === 'poor' || this.formData.metaDescriptions === 'fair') {
-            findings.onPage.push({
-                title: 'Meta Description Issues',
-                description: 'Meta descriptions are missing or poorly optimized.',
-                severity: this.formData.metaDescriptions
-            });
-            findings.recommendations.push({
-                title: 'Write Compelling Meta Descriptions',
-                description: 'Create unique meta descriptions for each page to improve click-through rates.',
-                priority: 'medium'
-            });
+        // URL Structure Analysis
+        if (this.formData.urlStructure) {
+            const urlQuality = this.formData.urlStructure;
+            if (urlQuality === 'poor') {
+                findings.technical.push({
+                    title: 'Poor URL Structure',
+                    description: 'URLs are not SEO-friendly. Issues may include dynamic parameters, lack of keywords, excessive length, or unclear hierarchy. Clean URLs improve user experience and search engine understanding.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Implement SEO-Friendly URL Structure',
+                    description: 'Create descriptive, keyword-rich URLs with clear hierarchy. Remove unnecessary parameters, use hyphens instead of underscores, and keep URLs under 60 characters when possible.',
+                    priority: 'medium'
+                });
+            }
         }
 
-        // Content findings
-        if (this.formData.contentQuality === 'poor' || this.formData.contentQuality === 'fair') {
-            findings.content.push({
-                title: 'Content Quality Concerns',
-                description: 'Website content needs improvement to provide better value to users.',
-                severity: this.formData.contentQuality
-            });
-            findings.recommendations.push({
-                title: 'Enhance Content Quality',
-                description: 'Create high-value, comprehensive content that addresses user needs.',
-                priority: 'high'
-            });
+        // Crawl Errors Analysis
+        const crawlErrors = parseInt(this.formData.crawlErrors) || 0;
+        if (crawlErrors > 0) {
+            if (crawlErrors > 20) {
+                findings.technical.push({
+                    title: 'Significant Crawl Errors Detected',
+                    description: `${crawlErrors} crawl errors found. High number of crawl errors indicates technical issues preventing search engines from properly accessing and indexing content. Common issues include broken links, server errors, and redirect chains.`,
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Fix Critical Crawl Errors',
+                    description: 'Systematically address all crawl errors: fix broken links, resolve server errors, clean up redirect chains, and ensure proper 404 error handling.',
+                    priority: 'high'
+                });
+            } else if (crawlErrors > 5) {
+                findings.technical.push({
+                    title: 'Moderate Crawl Errors Present',
+                    description: `${crawlErrors} crawl errors detected. While not critical, these should be addressed to ensure optimal search engine access.`,
+                    severity: 'fair'
+                });
+            }
         }
 
-        if (this.formData.contentLength === 'poor') {
-            findings.content.push({
-                title: 'Thin Content Issues',
-                description: 'Many pages have insufficient content length for effective SEO.',
-                severity: 'poor'
-            });
-            findings.recommendations.push({
-                title: 'Expand Content Length',
-                description: 'Develop comprehensive content with at least 500-1000 words per page.',
-                priority: 'medium'
-            });
+        // ON-PAGE SEO ANALYSIS - Comprehensive findings
+
+        // Title Tags Analysis
+        if (this.formData.titleTags) {
+            const titleQuality = this.formData.titleTags;
+            if (titleQuality === 'poor') {
+                findings.onPage.push({
+                    title: 'Critical Title Tag Issues',
+                    description: 'Title tags are missing, duplicate, or poorly optimized. Title tags are one of the most important on-page SEO factors, directly influencing click-through rates and rankings. Issues may include missing titles, duplicate titles across pages, or titles that don\'t include target keywords.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Optimize All Title Tags',
+                    description: 'Create unique, descriptive title tags for every page. Include primary keywords near the beginning, keep under 60 characters, and make them compelling for users. Format: "Primary Keyword | Secondary Keyword | Brand Name".',
+                    priority: 'high'
+                });
+            } else if (titleQuality === 'fair') {
+                findings.onPage.push({
+                    title: 'Title Tag Improvements Needed',
+                    description: 'Title tags exist but need optimization for better performance. Some may be too long, missing keywords, or not compelling enough for users.',
+                    severity: 'fair'
+                });
+            }
         }
+
+        // Meta Descriptions Analysis
+        if (this.formData.metaDescriptions) {
+            const metaQuality = this.formData.metaDescriptions;
+            if (metaQuality === 'poor') {
+                findings.onPage.push({
+                    title: 'Meta Description Issues',
+                    description: 'Meta descriptions are missing, duplicate, or poorly written. While not a direct ranking factor, meta descriptions significantly impact click-through rates from search results. Missing descriptions mean Google creates its own, often less compelling versions.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Write Compelling Meta Descriptions',
+                    description: 'Create unique meta descriptions for all important pages. Include target keywords naturally, stay within 150-160 characters, and write compelling copy that encourages clicks. Include a clear value proposition or call-to-action.',
+                    priority: 'medium'
+                });
+            }
+        }
+
+        // Header Tags Analysis
+        if (this.formData.headerTags) {
+            const headerQuality = this.formData.headerTags;
+            if (headerQuality === 'poor') {
+                findings.onPage.push({
+                    title: 'Header Tag Structure Problems',
+                    description: 'Header tags (H1, H2, H3, etc.) are missing, improperly structured, or not optimized. Proper header hierarchy helps search engines understand content structure and improves accessibility. Multiple H1 tags or skipping header levels can confuse search engines.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Implement Proper Header Hierarchy',
+                    description: 'Use single H1 tag per page with primary keyword, create logical H2-H6 structure for content sections, and include relevant keywords naturally in headers.',
+                    priority: 'medium'
+                });
+            }
+        }
+
+        // Keyword Optimization Analysis
+        if (this.formData.keywordOptimization) {
+            const keywordQuality = this.formData.keywordOptimization;
+            if (keywordQuality === 'poor') {
+                findings.onPage.push({
+                    title: 'Poor Keyword Optimization',
+                    description: 'Content lacks proper keyword optimization. Pages may be missing target keywords, have keyword stuffing, or lack semantic keyword variations. Proper keyword optimization helps search engines understand page relevance.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Implement Strategic Keyword Optimization',
+                    description: 'Research and implement target keywords naturally throughout content. Focus on user intent, include semantic variations, and maintain 1-2% keyword density. Optimize for long-tail keywords relevant to your industry.',
+                    priority: 'high'
+                });
+            }
+        }
+
+        // Image Optimization Analysis
+        if (this.formData.imageOptimization) {
+            const imageQuality = this.formData.imageOptimization;
+            if (imageQuality === 'poor' || imageQuality === 'fair') {
+                findings.onPage.push({
+                    title: 'Image Optimization Issues',
+                    description: 'Images lack proper optimization affecting page speed and accessibility. Issues may include missing alt text, oversized images, wrong file formats, or non-descriptive filenames. Optimized images improve user experience and provide additional ranking opportunities.',
+                    severity: imageQuality
+                });
+                findings.recommendations.push({
+                    title: 'Optimize All Images',
+                    description: 'Add descriptive alt text for accessibility and SEO, compress images (aim for under 100KB), use modern formats (WebP), resize images appropriately, and use descriptive filenames with keywords.',
+                    priority: 'medium'
+                });
+            }
+        }
+
+        // Internal Linking Analysis
+        if (this.formData.internalLinking) {
+            const linkingQuality = this.formData.internalLinking;
+            if (linkingQuality === 'poor') {
+                findings.onPage.push({
+                    title: 'Poor Internal Linking Strategy',
+                    description: 'Internal linking structure is inadequate, limiting page authority distribution and user navigation. Poor internal linking makes it harder for search engines to discover and understand page relationships.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Develop Strategic Internal Linking',
+                    description: 'Create comprehensive internal linking strategy: link to important pages from high-authority pages, use descriptive anchor text with keywords, ensure all pages are within 3 clicks of homepage, and create topic clusters.',
+                    priority: 'medium'
+                });
+            }
+        }
+
+        // Schema Markup Analysis
+        if (this.formData.schemaMarkup) {
+            const schemaQuality = this.formData.schemaMarkup;
+            if (schemaQuality === 'poor' || schemaQuality === 'missing') {
+                findings.onPage.push({
+                    title: 'Missing Schema Markup',
+                    description: 'No structured data (schema markup) detected. Schema markup helps search engines understand content context and can enable rich snippets, improving click-through rates and visibility in search results.',
+                    severity: 'fair'
+                });
+                findings.recommendations.push({
+                    title: 'Implement Schema Markup',
+                    description: 'Add relevant schema markup for your business type, products, reviews, events, and articles. Use JSON-LD format and validate with Google\'s Structured Data Testing Tool.',
+                    priority: 'medium'
+                });
+            }
+        }
+
+        // CONTENT ANALYSIS - Comprehensive findings
+
+        // Content Quality Analysis
+        if (this.formData.contentQuality) {
+            const contentQuality = this.formData.contentQuality;
+            if (contentQuality === 'poor') {
+                findings.content.push({
+                    title: 'Low Content Quality Issues',
+                    description: 'Content quality is below standards expected for effective SEO. Issues may include thin content, lack of expertise/authority, poor user engagement metrics, or content that doesn\'t match user search intent. High-quality content is essential for rankings and user satisfaction.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Enhance Content Quality and Authority',
+                    description: 'Create comprehensive, expert-level content that demonstrates E-A-T (Expertise, Authoritativeness, Trustworthiness). Include original research, expert quotes, detailed explanations, and practical value for users.',
+                    priority: 'high'
+                });
+            } else if (contentQuality === 'fair') {
+                findings.content.push({
+                    title: 'Content Quality Improvements Needed',
+                    description: 'Content is adequate but has room for improvement in depth, expertise, or user value.',
+                    severity: 'fair'
+                });
+            }
+        }
+
+        // Content Length Analysis
+        if (this.formData.contentLength) {
+            const lengthQuality = this.formData.contentLength;
+            if (lengthQuality === 'poor') {
+                findings.content.push({
+                    title: 'Thin Content Problems',
+                    description: 'Many pages have insufficient content length (under 300 words). Thin content provides little value to users and search engines. Studies show longer, comprehensive content tends to rank higher for competitive keywords.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Expand Content Depth',
+                    description: 'Develop comprehensive content with minimum 500-1000 words for important pages. Focus on thorough coverage of topics, answer related questions, and provide practical value to users.',
+                    priority: 'high'
+                });
+            } else if (lengthQuality === 'fair') {
+                findings.content.push({
+                    title: 'Content Length Could Be Improved',
+                    description: 'Content length is moderate but could benefit from expansion for better topic coverage and user value.',
+                    severity: 'fair'
+                });
+            }
+        }
+
+        // Content Freshness Analysis
+        if (this.formData.contentFreshness) {
+            const freshness = this.formData.contentFreshness;
+            if (freshness === 'poor') {
+                findings.content.push({
+                    title: 'Outdated Content Issues',
+                    description: 'Content is largely outdated, which can harm credibility and search rankings. Fresh, current content signals to search engines that the site is actively maintained and provides up-to-date information.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Implement Content Freshness Strategy',
+                    description: 'Regularly update existing content with current information, add publication and update dates, create content calendar for regular publishing, and refresh old content with new insights.',
+                    priority: 'medium'
+                });
+            }
+        }
+
+        // Keyword Density Analysis
+        if (this.formData.keywordDensity) {
+            const density = this.formData.keywordDensity;
+            if (density === 'poor') {
+                findings.content.push({
+                    title: 'Keyword Density Issues',
+                    description: 'Keyword usage is either too sparse (under-optimization) or excessive (over-optimization/keyword stuffing). Both scenarios can harm search performance. Modern SEO requires natural, semantic keyword usage.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Optimize Keyword Density',
+                    description: 'Maintain natural keyword density of 1-3% for primary keywords. Use semantic variations and related terms. Focus on user-intent rather than exact-match keywords.',
+                    priority: 'medium'
+                });
+            }
+        }
+
+        // Readability Analysis
+        const readability = parseInt(this.formData.readabilityScore) || 0;
+        if (readability > 0) {
+            if (readability < 60) {
+                findings.content.push({
+                    title: 'Poor Content Readability',
+                    description: `Readability score of ${readability}/100 indicates content is difficult to read. Poor readability increases bounce rates and reduces user engagement, indirectly affecting search rankings.`,
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Improve Content Readability',
+                    description: 'Simplify language, use shorter sentences and paragraphs, add subheadings for scanning, use bullet points and lists, and maintain 8th-grade reading level for broader accessibility.',
+                    priority: 'medium'
+                });
+            }
+        }
+
+        // Duplicate Content Analysis
+        if (this.formData.duplicateContent) {
+            const duplication = this.formData.duplicateContent;
+            if (duplication === 'major') {
+                findings.content.push({
+                    title: 'Significant Duplicate Content Issues',
+                    description: 'Major duplicate content problems detected. Duplicate content confuses search engines about which version to rank and can lead to ranking penalties or content being filtered from search results.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Resolve Duplicate Content Issues',
+                    description: 'Identify and eliminate duplicate content through canonical tags, 301 redirects, or content consolidation. Create unique content for each page and implement proper URL parameters handling.',
+                    priority: 'high'
+                });
+            } else if (duplication === 'moderate') {
+                findings.content.push({
+                    title: 'Moderate Duplicate Content',
+                    description: 'Some duplicate content issues present that should be addressed for optimal search performance.',
+                    severity: 'fair'
+                });
+            }
+        }
+
+        // Industry-Specific Recommendations
+        this.addIndustrySpecificFindings(findings);
 
         return findings;
+    }
+
+    addIndustrySpecificFindings(findings) {
+        const industry = this.formData.industry;
+        
+        if (industry === 'localbusiness') {
+            findings.recommendations.push({
+                title: 'Local SEO Optimization',
+                description: 'Claim and optimize Google My Business listing, build local citations, encourage customer reviews, and optimize for "near me" searches. Include location-specific keywords and create location-specific landing pages.',
+                priority: 'high'
+            });
+            findings.recommendations.push({
+                title: 'Local Schema Markup',
+                description: 'Implement LocalBusiness schema markup with NAP (Name, Address, Phone), business hours, and service areas to improve local search visibility.',
+                priority: 'medium'
+            });
+        } else if (industry === 'ecommerce') {
+            findings.recommendations.push({
+                title: 'E-commerce SEO Essentials',
+                description: 'Optimize product pages with unique descriptions, implement product schema markup, optimize category pages, and create user-generated content strategy through reviews.',
+                priority: 'high'
+            });
+        } else if (industry === 'healthcare') {
+            findings.recommendations.push({
+                title: 'Healthcare E-A-T Optimization',
+                description: 'Demonstrate medical expertise through author credentials, citations to medical studies, regular content updates by qualified professionals, and clear medical disclaimers.',
+                priority: 'high'
+            });
+        } else if (industry === 'legal') {
+            findings.recommendations.push({
+                title: 'Legal Industry SEO',
+                description: 'Create practice area-specific content, showcase attorney credentials and case results, implement local SEO for legal services, and ensure all content meets legal advertising guidelines.',
+                priority: 'high'
+            });
+        }
     }
 
     generateReport() {
@@ -330,29 +689,124 @@ class SEOAuditTool {
 
     createExecutiveSummary(scores) {
         let summaryText = '';
+        let keyIssues = [];
+        let strengths = [];
+        let impactStatement = '';
         
+        // Analyze scores to provide specific insights
+        if (scores.technical < 60) keyIssues.push('technical infrastructure');
+        if (scores.onPage < 60) keyIssues.push('on-page optimization');
+        if (scores.content < 60) keyIssues.push('content quality and optimization');
+        
+        if (scores.technical >= 80) strengths.push('strong technical foundation');
+        if (scores.onPage >= 80) strengths.push('well-optimized on-page elements');
+        if (scores.content >= 80) strengths.push('high-quality content strategy');
+
+        // Generate detailed summary based on overall score
         if (scores.overall >= 80) {
-            summaryText = 'Excellent performance across all SEO metrics. The website demonstrates strong technical foundation and content optimization with minor areas for enhancement.';
+            summaryText = `Excellent SEO performance with an overall score of ${scores.overall}/100. The website demonstrates ${strengths.join(' and ')}. This strong foundation positions the site well for continued search engine success.`;
+            impactStatement = 'With strategic fine-tuning of the identified minor issues, this website is positioned to achieve top search rankings and substantial organic traffic growth.';
         } else if (scores.overall >= 60) {
-            summaryText = 'Good overall performance with solid foundations in place. Several opportunities for improvement have been identified that could significantly boost search engine visibility.';
+            summaryText = `Good SEO performance with an overall score of ${scores.overall}/100. The website shows solid foundations${strengths.length > 0 ? ' particularly in ' + strengths.join(' and ') : ''}${keyIssues.length > 0 ? ', though improvements needed in ' + keyIssues.join(' and ') : ''}.`;
+            impactStatement = 'Addressing the identified optimization opportunities could result in 25-40% improvement in organic search visibility and user engagement metrics.';
         } else if (scores.overall >= 40) {
-            summaryText = 'Moderate performance with considerable room for improvement. Addressing the identified issues will lead to substantial gains in search engine rankings and organic traffic.';
+            summaryText = `Moderate SEO performance with a score of ${scores.overall}/100. The website has foundational elements in place but requires significant improvements in ${keyIssues.join(', ')}.`;
+            impactStatement = 'Implementing our strategic recommendations could lead to 50-75% improvement in search rankings and a substantial increase in qualified organic traffic.';
         } else {
-            summaryText = 'Significant opportunities for improvement across multiple SEO factors. Implementing our recommendations will dramatically improve search engine visibility and organic traffic potential.';
+            summaryText = `Below-average SEO performance with a score of ${scores.overall}/100. Critical issues identified across ${keyIssues.join(', ')} require immediate attention.`;
+            impactStatement = 'Following our comprehensive optimization strategy could result in 100-200% improvement in search visibility and establish a strong competitive position in your market.';
+        }
+
+        // Add industry-specific context
+        let industryContext = '';
+        const industry = this.formData.industry;
+        if (industry === 'localbusiness') {
+            industryContext = ' As a local business, implementing local SEO strategies will be crucial for capturing nearby customers and competing effectively in local search results.';
+        } else if (industry === 'ecommerce') {
+            industryContext = ' In the competitive e-commerce landscape, technical performance and product page optimization will be key drivers of conversion and revenue growth.';
+        } else if (industry === 'healthcare') {
+            industryContext = ' Healthcare websites require exceptional expertise demonstration and trustworthiness signals to rank well in this heavily regulated industry.';
+        } else if (industry === 'legal') {
+            industryContext = ' Legal service websites must balance competitive keyword optimization with professional credibility and local market targeting.';
         }
 
         return `
             <div class="section">
                 <h3>Executive Summary</h3>
-                <p><strong>Website:</strong> ${this.formData.websiteUrl || 'N/A'}</p>
-                <p><strong>Industry:</strong> ${this.formData.industry || 'N/A'}</p>
-                <p><strong>Target Location:</strong> ${this.formData.targetLocation || 'N/A'}</p>
-                <p><strong>Primary Keywords:</strong> ${this.formData.primaryKeywords || 'N/A'}</p>
-                <br>
-                <p>${summaryText}</p>
-                <p>This comprehensive audit has identified key areas for optimization that will enhance your website's search engine performance, user experience, and overall digital presence.</p>
+                <div style="background: #f8f9fa; padding: 15pt; border-radius: 8pt; margin-bottom: 15pt;">
+                    <p><strong>Client:</strong> ${this.formData.clientName || 'N/A'}</p>
+                    <p><strong>Website:</strong> ${this.formData.websiteUrl || 'N/A'}</p>
+                    <p><strong>Industry:</strong> ${this.getIndustryDisplayName(industry)}</p>
+                    <p><strong>Target Location:</strong> ${this.formData.targetLocation || 'N/A'}</p>
+                    <p><strong>Primary Keywords:</strong> ${this.formData.primaryKeywords || 'N/A'}</p>
+                    <p><strong>Business Goals:</strong> ${this.formData.businessGoals || 'N/A'}</p>
+                </div>
+                
+                <h4>Performance Overview</h4>
+                <p>${summaryText}${industryContext}</p>
+                
+                <h4>Strategic Impact Assessment</h4>
+                <p>${impactStatement}</p>
+                
+                <h4>Key Findings Summary</h4>
+                <ul style="margin: 10pt 0; padding-left: 20pt;">
+                    <li><strong>Technical SEO Score:</strong> ${scores.technical}/100 - ${this.getScoreAnalysis(scores.technical, 'technical')}</li>
+                    <li><strong>On-Page SEO Score:</strong> ${scores.onPage}/100 - ${this.getScoreAnalysis(scores.onPage, 'onpage')}</li>
+                    <li><strong>Content Quality Score:</strong> ${scores.content}/100 - ${this.getScoreAnalysis(scores.content, 'content')}</li>
+                </ul>
+                
+                <p><em>This comprehensive audit analyzed ${Object.keys(this.formData).length} different SEO factors to provide actionable insights for improving your website's search engine performance, user experience, and competitive positioning.</em></p>
             </div>
         `;
+    }
+
+    getIndustryDisplayName(industry) {
+        const industryNames = {
+            'ecommerce': 'E-commerce',
+            'healthcare': 'Healthcare',
+            'finance': 'Finance',
+            'technology': 'Technology',
+            'education': 'Education',
+            'realestate': 'Real Estate',
+            'automotive': 'Automotive',
+            'food': 'Food & Restaurant',
+            'legal': 'Legal Services',
+            'localbusiness': 'Local Business',
+            'other': 'Other'
+        };
+        return industryNames[industry] || 'Not Specified';
+    }
+
+    getScoreAnalysis(score, category) {
+        if (score >= 80) {
+            const excellence = {
+                'technical': 'Strong technical infrastructure with minor optimization opportunities',
+                'onpage': 'Well-optimized pages with effective keyword targeting',
+                'content': 'High-quality content providing excellent user value'
+            };
+            return excellence[category] || 'Excellent performance';
+        } else if (score >= 60) {
+            const good = {
+                'technical': 'Solid technical foundation with some improvement areas',
+                'onpage': 'Good optimization baseline requiring strategic enhancements',
+                'content': 'Quality content with opportunities for depth and engagement'
+            };
+            return good[category] || 'Good performance with improvement potential';
+        } else if (score >= 40) {
+            const moderate = {
+                'technical': 'Technical issues requiring immediate attention',
+                'onpage': 'Significant on-page optimization opportunities',
+                'content': 'Content strategy needs substantial improvement'
+            };
+            return moderate[category] || 'Moderate performance requiring improvement';
+        } else {
+            const poor = {
+                'technical': 'Critical technical issues impacting search performance',
+                'onpage': 'Poor on-page optimization hindering visibility',
+                'content': 'Content quality below industry standards'
+            };
+            return poor[category] || 'Poor performance requiring immediate action';
+        }
     }
 
     createFindingsSection(title, findings) {

@@ -939,7 +939,7 @@ class SEOAuditTool {
                     <div class="score-card">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.overall)}">${scores.overall}</div>
                         <div class="score-label">Overall Score</div>
-                        <div class="score-description">Grade: ${this.getScoreGrade(scores.overall)}</div>
+                        <div class="score-description ">Grade: ${this.getScoreGrade(scores.overall)}</div>
                     </div>
                     <div class="score-card">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.technical)}">${scores.technical}</div>
@@ -951,19 +951,19 @@ class SEOAuditTool {
                         <div class="score-label">On-Page SEO</div>
                         <div class="score-description">Content Optimization</div>
                     </div>
-                    <div class="score-card">
+                    <div class="score-card ">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.content)}">${scores.content}</div>
                         <div class="score-label">Content Quality</div>
                         <div class="score-description">User Value</div>
                     </div>
                     ${this.hasBacklinkData() ? `
-                    <div class="score-card">
+                    <div class="score-card ">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.backlinks)}">${scores.backlinks}</div>
                         <div class="score-label">Backlink Profile</div>
                         <div class="score-description">Link Authority</div>
                     </div>` : ''}
                     ${this.hasGMBData() ? `
-                    <div class="score-card">
+                    <div class="score-card ">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.gmb)}">${scores.gmb}</div>
                         <div class="score-label">Local SEO / GMB</div>
                         <div class="score-description">Local Presence</div>
@@ -1038,6 +1038,7 @@ class SEOAuditTool {
                     <p><strong>Primary Keywords:</strong> ${this.formData.primaryKeywords || 'N/A'}</p>
                     <p><strong>Business Goals:</strong> ${this.formData.businessGoals || 'N/A'}</p>
                 </div>
+                <div class="html2pdf__page-break"></div> <!-- Add this line! -->
                 
                 <h4>Performance Overview</h4>
                 <p>${summaryText}${industryContext}</p>
@@ -1247,7 +1248,7 @@ class SEOAuditTool {
                         </div>
                     </div>
                     
-                    <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <div class="print-hide" style="margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
                         <p style="margin-bottom: 1rem; font-size: 1.1rem;"><strong>🚀 Special Offer: Free 30-Minute Strategy Session</strong></p>
                         <p style="margin-bottom: 0;">Contact us today for a complimentary consultation where we'll discuss your specific needs and create a customized SEO strategy for your business.</p>
                     </div>
@@ -1256,11 +1257,432 @@ class SEOAuditTool {
         `;
     }
 
-    printReport() {
-        // Add a small delay to ensure all styles are loaded
-        setTimeout(() => {
-            window.print();
-        }, 100);
+printReport() {
+    // Get the report content
+    const reportElement = document.getElementById('auditReport');
+    
+    if (!reportElement || reportElement.innerHTML.trim() === '') {
+        alert('Please generate a report first before downloading PDF.');
+        return;
+    }
+
+    // Check if html2pdf is available
+    if (typeof html2pdf === 'undefined') {
+        alert('PDF library not loaded. Please refresh the page and try again.');
+        return;
+    }
+
+    try {
+        const options = {
+            margin: [0.5, 0.5, 0.5, 0.5],
+            filename: `SEO-Audit-Report-${this.formData.clientName || 'Client'}-${new Date().toISOString().split('T')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 2, // <-- Increased scale for better quality
+                useCORS: true,
+                logging: false
+            },
+            jsPDF: { 
+                unit: 'in', 
+                format: 'a4', 
+                orientation: 'portrait'
+            },
+            pagebreak: { mode: ['css', 'legacy'] } // <-- ADD THIS LINE
+        };
+
+        const originalText = this.printReportBtn.textContent;
+        this.printReportBtn.textContent = 'Generating PDF...';
+        this.printReportBtn.disabled = true;
+
+        // Use the actual report element
+        html2pdf()
+            .set(options)
+            .from(reportElement)
+            .save()
+            .then(() => {
+                this.printReportBtn.textContent = originalText;
+                this.printReportBtn.disabled = false;
+            })
+            .catch((error) => {
+                console.error('PDF generation error:', error);
+                alert('Error generating PDF: ' + error.message);
+                this.printReportBtn.textContent = originalText;
+                this.printReportBtn.disabled = false;
+            });
+    } catch (error) {
+        console.error('PDF setup error:', error);
+        alert('Error setting up PDF generation: ' + error.message);
+    }
+}
+    createSimplePDFContent() {
+        // Create a temporary container for PDF content
+        const pdfContainer = document.createElement('div');
+        pdfContainer.style.cssText = `
+            position: absolute;
+            top: -10000px;
+            left: -10000px;
+            width: 8.27in;
+            background: white;
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #000;
+            padding: 0.5in;
+            box-sizing: border-box;
+        `;
+
+        // Get basic data
+        const clientName = this.formData.clientName || 'Client';
+        const websiteUrl = this.formData.websiteUrl || 'Website';
+        const industry = this.formData.industry || 'Not specified';
+        const scores = this.calculateScores();
+        
+        // Create simple, reliable PDF content
+        pdfContainer.innerHTML = `
+            <div style="text-align: center; border-bottom: 2pt solid #667eea; padding-bottom: 1rem; margin-bottom: 2rem;">
+                <h1 style="color: #1a202c; font-size: 24pt; font-weight: bold; margin: 0 0 0.5rem 0;">Empire Digisol SEO Audit</h1>
+                <p style="color: #4a5568; font-size: 12pt; margin: 0;">Professional SEO Analysis Report</p>
+                <p style="color: #718096; font-size: 10pt; margin-top: 0.5rem;">Generated on ${new Date().toLocaleDateString()}</p>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: #1a202c; font-size: 16pt; font-weight: bold; margin-bottom: 1rem;">Executive Summary</h2>
+                
+                <div style="background: #f8f9fa; padding: 1rem; border: 1pt solid #e9ecef; margin-bottom: 1rem;">
+                    <p><strong>Client:</strong> ${clientName}</p>
+                    <p><strong>Website:</strong> ${websiteUrl}</p>
+                    <p><strong>Industry:</strong> ${industry}</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: #1a202c; font-size: 16pt; font-weight: bold; margin-bottom: 1rem;">SEO Scores</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                    <div style="text-align: center; background: #f8f9fa; padding: 1rem; border: 1pt solid #e9ecef;">
+                        <div style="font-size: 36pt; font-weight: bold; color: #667eea; margin-bottom: 0.5rem;">${scores.overall}</div>
+                        <div style="font-size: 12pt; font-weight: bold;">Overall Score</div>
+                    </div>
+                    <div style="text-align: center; background: #f8f9fa; padding: 1rem; border: 1pt solid #e9ecef;">
+                        <div style="font-size: 36pt; font-weight: bold; color: #667eea; margin-bottom: 0.5rem;">${scores.technical}</div>
+                        <div style="font-size: 12pt; font-weight: bold;">Technical SEO</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; border-top: 2pt solid #667eea; padding-top: 2rem; margin-top: 2rem;">
+                <h2 style="color: #1a202c; font-size: 18pt; font-weight: bold; margin-bottom: 1rem;">Ready to Transform Your SEO Performance?</h2>
+                <p style="color: #4a5568; font-size: 12pt; margin-bottom: 1.5rem;">Partner with Empire Digisol to implement these recommendations and achieve measurable results</p>
+                <div style="display: inline-block; background: #667eea; color: white; padding: 0.75rem 2rem; border-radius: 6px; font-weight: bold; font-size: 12pt;">Get Started Today</div>
+            </div>
+        `;
+
+        document.body.appendChild(pdfContainer);
+        return pdfContainer;
+    }
+
+    createPDFOptimizedContent() {
+        // Create a temporary container for PDF-optimized content
+        const pdfContainer = document.createElement('div');
+        pdfContainer.style.cssText = `
+            position: absolute;
+            top: -10000px;
+            left: -10000px;
+            width: 8.27in;
+            background: white;
+            font-family: 'Inter', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000;
+            padding: 0.5in;
+            box-sizing: border-box;
+        `;
+
+        // Generate PDF-optimized HTML content
+        const scores = this.calculateScores();
+        const findings = this.generateFindings();
+        
+        pdfContainer.innerHTML = `
+            <div style="margin-bottom: 2rem;">
+                <div style="text-align: center; border-bottom: 2pt solid #667eea; padding-bottom: 1rem; margin-bottom: 2rem;">
+                    <h1 style="color: #1a202c; font-size: 24pt; font-weight: 700; margin: 0 0 0.5rem 0;">Empire Digisol SEO Audit</h1>
+                    <p style="color: #4a5568; font-size: 12pt; margin: 0;">Professional SEO Analysis Report</p>
+                    <p style="color: #718096; font-size: 10pt; margin-top: 0.5rem;">Generated on ${new Date().toLocaleDateString()}</p>
+                </div>
+
+                ${this.createPDFScoreOverview(scores)}
+                ${this.createPDFExecutiveSummary(scores)}
+                ${this.createPDFSectionAnalysis(findings)}
+                ${this.createPDFRecommendations(findings)}
+                ${this.createPDFCompetitiveAnalysis()}
+                ${this.createPDFImplementationRoadmap()}
+                ${this.createPDFCTASection()}
+            </div>
+        `;
+
+        document.body.appendChild(pdfContainer);
+        return pdfContainer;
+    }
+
+    createPDFScoreOverview(scores) {
+        return `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div style="text-align: center; background: #f8f9fa; padding: 1rem; border-radius: 8px; border: 1pt solid #e9ecef;">
+                    <div style="font-size: 36pt; font-weight: 700; color: ${this.getScoreColor(scores.overall)}; margin-bottom: 0.5rem;">${scores.overall}</div>
+                    <div style="font-size: 12pt; font-weight: 600; color: #1a202c;">Overall Score</div>
+                    <div style="font-size: 10pt; color: #6c757d;">Grade: ${this.getScoreGrade(scores.overall)}</div>
+                </div>
+                <div style="text-align: center; background: #f8f9fa; padding: 1rem; border-radius: 8px; border: 1pt solid #e9ecef;">
+                    <div style="font-size: 36pt; font-weight: 700; color: ${this.getScoreColor(scores.technical)}; margin-bottom: 0.5rem;">${scores.technical}</div>
+                    <div style="font-size: 12pt; font-weight: 600; color: #1a202c;">Technical SEO</div>
+                    <div style="font-size: 10pt; color: #6c757d;">Site Performance</div>
+                </div>
+                <div style="text-align: center; background: #f8f9fa; padding: 1rem; border-radius: 8px; border: 1pt solid #e9ecef;">
+                    <div style="font-size: 36pt; font-weight: 700; color: ${this.getScoreColor(scores.onPage)}; margin-bottom: 0.5rem;">${scores.onPage}</div>
+                    <div style="font-size: 12pt; font-weight: 600; color: #1a202c;">On-Page SEO</div>
+                    <div style="font-size: 10pt; color: #6c757d;">Content Optimization</div>
+                </div>
+                <div style="text-align: center; background: #f8f9fa; padding: 1rem; border-radius: 8px; border: 1pt solid #e9ecef;">
+                    <div style="font-size: 36pt; font-weight: 700; color: ${this.getScoreColor(scores.content)}; margin-bottom: 0.5rem;">${scores.content}</div>
+                    <div style="font-size: 12pt; font-weight: 600; color: #1a202c;">Content Quality</div>
+                    <div style="font-size: 10pt; color: #6c757d;">User Value</div>
+                </div>
+            </div>
+        `;
+    }
+
+    createPDFExecutiveSummary(scores) {
+        const clientName = this.formData.clientName || 'Client';
+        const websiteUrl = this.formData.websiteUrl || 'Website';
+        const industry = this.formData.industry || 'Not specified';
+        const targetLocation = this.formData.targetLocation || 'Not specified';
+        const primaryKeywords = this.formData.primaryKeywords || 'Not specified';
+        const businessGoals = this.formData.businessGoals || 'Not specified';
+
+        return `
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: #1a202c; font-size: 16pt; font-weight: 700; margin-bottom: 1rem; border-bottom: 1pt solid #e2e8f0; padding-bottom: 0.5rem;">Executive Summary</h2>
+                
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1pt solid #e9ecef;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 10pt;">
+                        <div><strong>Client:</strong> ${clientName}</div>
+                        <div><strong>Website:</strong> ${websiteUrl}</div>
+                        <div><strong>Industry:</strong> ${industry}</div>
+                        <div><strong>Target Location:</strong> ${targetLocation}</div>
+                        <div style="grid-column: span 2;"><strong>Primary Keywords:</strong> ${primaryKeywords}</div>
+                        <div style="grid-column: span 2;"><strong>Business Goals:</strong> ${businessGoals}</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <h3 style="color: #1a202c; font-size: 14pt; font-weight: 600; margin-bottom: 0.5rem;">Performance Overview</h3>
+                    <p style="font-size: 11pt; line-height: 1.5; margin-bottom: 1rem;">
+                        ${this.generatePerformanceOverview(scores, industry)}
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <h3 style="color: #1a202c; font-size: 14pt; font-weight: 600; margin-bottom: 0.5rem;">Strategic Impact Assessment</h3>
+                    <p style="font-size: 11pt; line-height: 1.5; margin-bottom: 1rem;">
+                        With strategic fine-tuning of the identified minor issues, this website is positioned to achieve top search rankings and substantial organic traffic growth.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 style="color: #1a202c; font-size: 14pt; font-weight: 600; margin-bottom: 0.5rem;">Key Findings Summary</h3>
+                    <ul style="font-size: 11pt; line-height: 1.5; padding-left: 1rem;">
+                        <li style="margin-bottom: 0.5rem;"><strong>Technical SEO Score:</strong> ${scores.technical}/100 - ${this.getScoreDescription(scores.technical)}</li>
+                        <li style="margin-bottom: 0.5rem;"><strong>On-Page SEO Score:</strong> ${scores.onPage}/100 - ${this.getScoreDescription(scores.onPage)}</li>
+                        <li style="margin-bottom: 0.5rem;"><strong>Content Quality Score:</strong> ${scores.content}/100 - ${this.getScoreDescription(scores.content)}</li>
+                    </ul>
+                    <p style="font-size: 10pt; color: #6c757d; margin-top: 1rem;">
+                        This comprehensive audit analyzed 63 different SEO factors to provide actionable insights for improving your website's search engine performance, user experience, and competitive positioning.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    createPDFSectionAnalysis(findings) {
+        return `
+            <div style="margin-bottom: 2rem;">
+                ${this.createPDFAnalysisSection('Technical SEO Analysis', findings.technical)}
+                ${this.createPDFAnalysisSection('On-Page SEO Analysis', findings.onPage)}
+                ${this.createPDFAnalysisSection('Content Analysis', findings.content)}
+                ${this.hasBacklinkData() ? this.createPDFAnalysisSection('Backlink Analysis', findings.backlinks) : ''}
+                ${this.hasGMBData() ? this.createPDFAnalysisSection('Google My Business Analysis', findings.gmb) : ''}
+            </div>
+        `;
+    }
+
+    createPDFAnalysisSection(title, findings) {
+        if (!findings || findings.length === 0) {
+            return `
+                <div style="margin-bottom: 1.5rem;">
+                    <h2 style="color: #1a202c; font-size: 16pt; font-weight: 700; margin-bottom: 1rem; border-bottom: 1pt solid #e2e8f0; padding-bottom: 0.5rem;">${title}</h2>
+                    <div style="background: #d4edda; border: 1pt solid #c3e6cb; border-radius: 8px; padding: 1rem;">
+                        <p style="color: #155724; font-weight: 600; margin: 0; font-size: 11pt;">✓ Excellent Performance Detected</p>
+                        <p style="color: #155724; margin: 0.5rem 0 0 0; font-size: 10pt;">This section demonstrates strong optimization with no critical issues identified. Continue current best practices to maintain this high standard.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div style="margin-bottom: 1.5rem;">
+                <h2 style="color: #1a202c; font-size: 16pt; font-weight: 700; margin-bottom: 1rem; border-bottom: 1pt solid #e2e8f0; padding-bottom: 0.5rem;">${title}</h2>
+                ${findings.map(finding => `
+                    <div style="margin-bottom: 1rem; border-left: 3pt solid ${this.getSeverityColor(finding.severity)}; padding-left: 1rem;">
+                        <h4 style="color: #1a202c; font-size: 12pt; font-weight: 600; margin: 0 0 0.5rem 0;">${finding.title}</h4>
+                        <p style="color: #4a5568; font-size: 10pt; line-height: 1.4; margin: 0;">${finding.description}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    createPDFRecommendations(findings) {
+        const allRecommendations = findings.recommendations || [];
+        
+        if (allRecommendations.length === 0) {
+            return '';
+        }
+
+        const highPriority = allRecommendations.filter(rec => rec.priority === 'high');
+        const mediumPriority = allRecommendations.filter(rec => rec.priority === 'medium');
+        const lowPriority = allRecommendations.filter(rec => rec.priority === 'low');
+
+        return `
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: #1a202c; font-size: 16pt; font-weight: 700; margin-bottom: 1rem; border-bottom: 1pt solid #e2e8f0; padding-bottom: 0.5rem;">Strategic Recommendations & Action Items</h2>
+                
+                ${highPriority.length > 0 ? `
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="background: #dc3545; color: white; padding: 0.5rem 1rem; border-radius: 4px; font-size: 12pt; font-weight: 600; margin: 0 0 1rem 0; text-align: center;">HIGH PRIORITY</h3>
+                        ${highPriority.map(rec => `
+                            <div style="background: #fff5f5; border: 1pt solid #fed7d7; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                <h4 style="color: #c53030; font-size: 12pt; font-weight: 600; margin: 0 0 0.5rem 0;">${rec.title}</h4>
+                                <p style="color: #4a5568; font-size: 10pt; line-height: 1.4; margin: 0;">${rec.description}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                ${mediumPriority.length > 0 ? `
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="background: #ed8936; color: white; padding: 0.5rem 1rem; border-radius: 4px; font-size: 12pt; font-weight: 600; margin: 0 0 1rem 0; text-align: center;">MEDIUM PRIORITY</h3>
+                        ${mediumPriority.map(rec => `
+                            <div style="background: #fffaf0; border: 1pt solid #fbd38d; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                <h4 style="color: #c05621; font-size: 12pt; font-weight: 600; margin: 0 0 0.5rem 0;">${rec.title}</h4>
+                                <p style="color: #4a5568; font-size: 10pt; line-height: 1.4; margin: 0;">${rec.description}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                ${lowPriority.length > 0 ? `
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="background: #38a169; color: white; padding: 0.5rem 1rem; border-radius: 4px; font-size: 12pt; font-weight: 600; margin: 0 0 1rem 0; text-align: center;">LOW PRIORITY</h3>
+                        ${lowPriority.map(rec => `
+                            <div style="background: #f0fff4; border: 1pt solid #9ae6b4; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                <h4 style="color: #2f855a; font-size: 12pt; font-weight: 600; margin: 0 0 0.5rem 0;">${rec.title}</h4>
+                                <p style="color: #4a5568; font-size: 10pt; line-height: 1.4; margin: 0;">${rec.description}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    createPDFCompetitiveAnalysis() {
+        const competitors = this.formData.topCompetitors || 'Not provided';
+        const competitorStrength = this.formData.competitorStrength || 'not assessed';
+        const contentGaps = this.formData.competitorContentGap || 'not analyzed';
+
+        return `
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: #1a202c; font-size: 16pt; font-weight: 700; margin-bottom: 1rem; border-bottom: 1pt solid #e2e8f0; padding-bottom: 0.5rem;">Competitive Landscape Analysis</h2>
+                <p style="font-size: 11pt; line-height: 1.5; margin-bottom: 0.5rem;"><strong>Primary Competitors:</strong> ${competitors}</p>
+                <p style="font-size: 11pt; line-height: 1.5; margin-bottom: 0.5rem;"><strong>Competition Level:</strong> ${competitorStrength.charAt(0).toUpperCase() + competitorStrength.slice(1)} competition</p>
+                <p style="font-size: 11pt; line-height: 1.5; margin-bottom: 1rem;"><strong>Content Gap Opportunities:</strong> ${contentGaps.charAt(0).toUpperCase() + contentGaps.slice(1)} opportunities for content expansion</p>
+                <p style="font-size: 11pt; line-height: 1.5;">Competitive analysis will help identify specific opportunities for market positioning and growth.</p>
+                ${this.formData.competitorAnalysis ? `<p style="font-size: 11pt; line-height: 1.5; margin-top: 1rem;"><strong>Detailed Analysis:</strong> ${this.formData.competitorAnalysis}</p>` : ''}
+                ${this.formData.opportunityAreas ? `<p style="font-size: 11pt; line-height: 1.5; margin-top: 1rem;"><strong>Key Opportunity Areas:</strong> ${this.formData.opportunityAreas}</p>` : ''}
+            </div>
+        `;
+    }
+
+    createPDFImplementationRoadmap() {
+        return `
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: #1a202c; font-size: 16pt; font-weight: 700; margin-bottom: 1rem; border-bottom: 1pt solid #e2e8f0; padding-bottom: 0.5rem;">Strategic Implementation Roadmap</h2>
+                <ol style="font-size: 11pt; line-height: 1.5; padding-left: 1rem;">
+                    <li style="margin-bottom: 1rem;"><strong>Immediate Actions (Week 1-2):</strong> Address critical technical issues including site speed, SSL certificate, and mobile responsiveness problems</li>
+                    <li style="margin-bottom: 1rem;"><strong>Short-term Optimization (Month 1):</strong> Optimize title tags, meta descriptions, and header structure across all key pages</li>
+                    <li style="margin-bottom: 1rem;"><strong>Content Enhancement (Month 1-2):</strong> Develop comprehensive, keyword-rich content addressing identified gaps and user intent</li>
+                    <li style="margin-bottom: 1rem;"><strong>Technical Implementation (Month 2):</strong> Implement structured data, improve site architecture, and enhance internal linking strategy</li>
+                    <li style="margin-bottom: 1rem;"><strong>Performance Monitoring (Ongoing):</strong> Set up comprehensive analytics tracking and establish regular performance review cycles</li>
+                    <li style="margin-bottom: 1rem;"><strong>Continuous Optimization (Ongoing):</strong> Implement regular content updates, technical maintenance, and strategy refinements based on performance data</li>
+                </ol>
+            </div>
+        `;
+    }
+
+    createPDFCTASection() {
+        return `
+            <div style="text-align: center; border-top: 2pt solid #667eea; padding-top: 2rem; margin-top: 2rem;">
+                <h2 style="color: #1a202c; font-size: 18pt; font-weight: 700; margin-bottom: 1rem;">Ready to Transform Your SEO Performance?</h2>
+                <p style="color: #4a5568; font-size: 12pt; margin-bottom: 1.5rem; line-height: 1.5;">Partner with Empire Digisol to implement these recommendations and achieve measurable results</p>
+                <div style="display: inline-block; background: #667eea; color: white; padding: 0.75rem 2rem; border-radius: 6px; font-weight: 600; font-size: 12pt; text-decoration: none; border: 2pt solid #667eea;">Get Started Today</div>
+            </div>
+        `;
+    }
+
+    getSeverityColor(severity) {
+        const colors = {
+            'poor': '#dc3545',
+            'fair': '#ffc107',
+            'good': '#28a745',
+            'excellent': '#17a2b8'
+        };
+        return colors[severity] || '#6c757d';
+    }
+
+    getScoreDescription(score) {
+        if (score >= 90) return 'Excellent performance with minimal optimization needed';
+        if (score >= 80) return 'Strong performance with minor improvement opportunities';
+        if (score >= 70) return 'Good performance with some optimization needed';
+        if (score >= 60) return 'Fair performance requiring moderate improvements';
+        return 'Poor performance requiring significant optimization';
+    }
+
+    generatePerformanceOverview(scores, industry) {
+        const overallGrade = this.getScoreGrade(scores.overall);
+        const industryContext = this.getIndustryContext(industry);
+        
+        if (scores.overall >= 85) {
+            return `Excellent SEO performance with an overall score of ${scores.overall}/100. The website demonstrates strong technical foundation and well-optimized on-page elements and high-quality content strategy. This strong foundation positions the site well for continued search engine success. ${industryContext}`;
+        } else if (scores.overall >= 70) {
+            return `Strong SEO performance with an overall score of ${scores.overall}/100. The website shows good optimization across most areas with some opportunities for improvement. ${industryContext}`;
+        } else if (scores.overall >= 50) {
+            return `Moderate SEO performance with an overall score of ${scores.overall}/100. The website has a solid foundation but requires focused optimization efforts to achieve competitive rankings. ${industryContext}`;
+        } else {
+            return `Below-average SEO performance with an overall score of ${scores.overall}/100. The website requires comprehensive optimization across multiple areas to improve search engine visibility and user experience. ${industryContext}`;
+        }
+    }
+
+    getIndustryContext(industry) {
+        const contexts = {
+            'healthcare': 'Healthcare websites require exceptional expertise demonstration and trustworthiness signals to rank well in this heavily regulated industry.',
+            'finance': 'Financial services websites must establish strong authority and trust signals due to YMYL (Your Money or Your Life) content requirements.',
+            'ecommerce': 'In the competitive e-commerce landscape, technical performance and product page optimization will be key drivers of conversion and revenue growth.',
+            'legal': 'Legal websites need to demonstrate expertise, authority, and trustworthiness through comprehensive content and professional credibility signals.',
+            'localbusiness': 'Local businesses should focus on location-based optimization, Google My Business optimization, and local citation building.',
+            'technology': 'Technology websites benefit from technical excellence, thought leadership content, and staying current with industry trends.',
+            'education': 'Educational websites should focus on comprehensive, authoritative content that demonstrates expertise in their subject areas.'
+        };
+        return contexts[industry] || 'Industry-specific SEO strategies will help maximize organic search performance and competitive positioning.';
     }
 }
 

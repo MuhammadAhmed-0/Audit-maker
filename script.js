@@ -66,10 +66,26 @@ class SEOAuditTool {
             technical: this.calculateTechnicalScore(),
             onPage: this.calculateOnPageScore(),
             content: this.calculateContentScore(),
+            backlinks: this.calculateBacklinkScore(),
+            gmb: this.calculateGMBScore(),
             overall: 0
         };
 
-        scores.overall = Math.round((scores.technical + scores.onPage + scores.content) / 3);
+        // Calculate overall score - include optional sections only if they have data
+        let totalScore = scores.technical + scores.onPage + scores.content;
+        let sectionCount = 3;
+        
+        if (this.hasBacklinkData()) {
+            totalScore += scores.backlinks;
+            sectionCount++;
+        }
+        
+        if (this.hasGMBData()) {
+            totalScore += scores.gmb;
+            sectionCount++;
+        }
+
+        scores.overall = Math.round(totalScore / sectionCount);
         return scores;
     }
 
@@ -141,6 +157,106 @@ class SEOAuditTool {
         return Math.max(0, Math.min(100, score));
     }
 
+    calculateBacklinkScore() {
+        if (!this.hasBacklinkData()) return 0;
+        
+        let score = 100;
+        
+        // Domain Authority scoring
+        const da = parseInt(this.formData.domainAuthority) || 0;
+        if (da < 20) score -= 25;
+        else if (da < 35) score -= 15;
+        else if (da < 50) score -= 8;
+        
+        // Backlink quality scoring
+        const quality = this.formData.backlinkQuality;
+        if (quality === 'poor') score -= 30;
+        else if (quality === 'fair') score -= 20;
+        else if (quality === 'good') score -= 8;
+        
+        // Anchor text diversity
+        const diversity = this.formData.anchorTextDiversity;
+        if (diversity === 'poor') score -= 25;
+        else if (diversity === 'fair') score -= 15;
+        else if (diversity === 'good') score -= 5;
+        
+        // Toxic links penalty
+        const toxicPercent = parseInt(this.formData.toxicLinks) || 0;
+        if (toxicPercent > 15) score -= 30;
+        else if (toxicPercent > 10) score -= 20;
+        else if (toxicPercent > 5) score -= 10;
+        
+        // Link velocity concerns
+        const velocity = this.formData.linkVelocity;
+        if (velocity === 'concerning') score -= 20;
+        else if (velocity === 'fast') score -= 10;
+        
+        // Competitor comparison
+        const totalBacklinks = parseInt(this.formData.totalBacklinks) || 0;
+        const competitorBacklinks = parseInt(this.formData.competitorBacklinks) || 0;
+        if (competitorBacklinks > 0 && totalBacklinks < competitorBacklinks * 0.3) {
+            score -= 15;
+        } else if (competitorBacklinks > 0 && totalBacklinks < competitorBacklinks * 0.6) {
+            score -= 8;
+        }
+        
+        return Math.max(0, Math.min(100, score));
+    }
+
+    calculateGMBScore() {
+        if (!this.hasGMBData()) return 0;
+        
+        let score = 100;
+        
+        // Profile status
+        const status = this.formData.gmbClaimed;
+        if (status === 'unclaimed') score -= 40;
+        else if (status === 'claimed-unverified') score -= 20;
+        
+        // Profile completeness
+        const completeness = parseInt(this.formData.gmbCompleteness) || 0;
+        if (completeness < 60) score -= 25;
+        else if (completeness < 80) score -= 15;
+        else if (completeness < 95) score -= 8;
+        
+        // Reviews and rating
+        const rating = parseFloat(this.formData.gmbRating) || 0;
+        const reviewCount = parseInt(this.formData.gmbReviews) || 0;
+        if (rating < 3.5) score -= 20;
+        else if (rating < 4.0) score -= 10;
+        if (reviewCount < 10) score -= 15;
+        else if (reviewCount < 25) score -= 8;
+        
+        // NAP consistency
+        const napConsistency = parseInt(this.formData.napConsistency) || 0;
+        if (napConsistency < 70) score -= 20;
+        else if (napConsistency < 85) score -= 10;
+        
+        // Local rankings
+        const rankings = this.formData.localRankings;
+        if (rankings === 'poor') score -= 25;
+        else if (rankings === 'fair') score -= 15;
+        else if (rankings === 'good') score -= 5;
+        
+        // Activity factors
+        const posts = this.formData.gmbPosts;
+        if (posts === 'poor') score -= 15;
+        else if (posts === 'fair') score -= 10;
+        else if (posts === 'good') score -= 3;
+        
+        return Math.max(0, Math.min(100, score));
+    }
+
+    hasBacklinkData() {
+        const backLinkFields = ['totalBacklinks', 'referringDomains', 'domainAuthority', 'backlinkQuality'];
+        return backLinkFields.some(field => this.formData[field] && this.formData[field].toString().trim() !== '');
+    }
+
+    hasGMBData() {
+        const gmbFields = ['gmbClaimed', 'gmbCompleteness', 'gmbRating', 'localRankings'];
+        return gmbFields.some(field => this.formData[field] && this.formData[field].toString().trim() !== '');
+    }
+
     getScoreColor(score) {
         if (score >= 80) return '#48bb78';
         if (score >= 60) return '#38b2ac';
@@ -162,6 +278,8 @@ class SEOAuditTool {
             technical: [],
             onPage: [],
             content: [],
+            backlinks: [],
+            gmb: [],
             recommendations: []
         };
 
@@ -580,6 +698,170 @@ class SEOAuditTool {
             }
         }
 
+        // BACKLINK ANALYSIS - Optional Section
+        if (this.hasBacklinkData()) {
+            // Domain Authority Analysis
+            const da = parseInt(this.formData.domainAuthority) || 0;
+            if (da > 0) {
+                if (da < 20) {
+                    findings.backlinks.push({
+                        title: 'Low Domain Authority',
+                        description: `Domain Authority of ${da} is significantly below average. This indicates weak backlink profile and limited organic search potential. Higher DA typically correlates with better search rankings.`,
+                        severity: 'poor'
+                    });
+                    findings.recommendations.push({
+                        title: 'Build High-Quality Backlinks',
+                        description: 'Focus on acquiring backlinks from high-authority, relevant websites through guest posting, resource page links, digital PR, and relationship building with industry leaders.',
+                        priority: 'high'
+                    });
+                } else if (da < 35) {
+                    findings.backlinks.push({
+                        title: 'Moderate Domain Authority',
+                        description: `Domain Authority of ${da} shows room for improvement. With strategic link building, significant gains in organic visibility are achievable.`,
+                        severity: 'fair'
+                    });
+                }
+            }
+
+            // Backlink Quality Assessment
+            const quality = this.formData.backlinkQuality;
+            if (quality === 'poor') {
+                findings.backlinks.push({
+                    title: 'Poor Backlink Quality Detected',
+                    description: 'Many low-quality or spam backlinks detected. These can harm search rankings and may result in manual penalties from search engines.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Toxic Link Cleanup Required',
+                    description: 'Conduct comprehensive backlink audit, disavow toxic links, and implement stricter link acquisition guidelines to protect domain authority.',
+                    priority: 'high'
+                });
+            }
+
+            // Toxic Links Analysis
+            const toxicPercent = parseInt(this.formData.toxicLinks) || 0;
+            if (toxicPercent > 10) {
+                findings.backlinks.push({
+                    title: 'High Toxic Link Percentage',
+                    description: `${toxicPercent}% toxic links detected. This poses significant risk to domain authority and search rankings. Immediate action required.`,
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Emergency Link Cleanup',
+                    description: 'Use Google Disavow Tool to reject toxic backlinks, conduct outreach for link removal, and implement ongoing monitoring to prevent future toxic link accumulation.',
+                    priority: 'high'
+                });
+            }
+
+            // Competitor Gap Analysis
+            const totalBacklinks = parseInt(this.formData.totalBacklinks) || 0;
+            const competitorBacklinks = parseInt(this.formData.competitorBacklinks) || 0;
+            if (competitorBacklinks > 0 && totalBacklinks < competitorBacklinks * 0.5) {
+                findings.backlinks.push({
+                    title: 'Significant Backlink Gap vs Competitors',
+                    description: `With ${totalBacklinks} backlinks vs competitor average of ${competitorBacklinks}, there's a substantial gap affecting competitive positioning.`,
+                    severity: 'fair'
+                });
+                findings.recommendations.push({
+                    title: 'Competitive Link Building Strategy',
+                    description: 'Analyze competitor backlink profiles, identify link opportunities, and develop targeted outreach campaigns to close the authority gap.',
+                    priority: 'high'
+                });
+            }
+        }
+
+        // GMB ANALYSIS - Optional Section  
+        if (this.hasGMBData()) {
+            // Profile Status Analysis
+            const status = this.formData.gmbClaimed;
+            if (status === 'unclaimed') {
+                findings.gmb.push({
+                    title: 'Unclaimed Google My Business Profile',
+                    description: 'Google My Business profile is unclaimed, resulting in lost local search visibility and inability to manage business information presentation.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Claim and Verify GMB Profile Immediately',
+                    description: 'Claim your Google My Business listing, complete verification process, and optimize all profile sections for maximum local search visibility.',
+                    priority: 'high'
+                });
+            } else if (status === 'claimed-unverified') {
+                findings.gmb.push({
+                    title: 'Unverified GMB Profile',
+                    description: 'GMB profile is claimed but unverified, limiting management capabilities and local search features.',
+                    severity: 'fair'
+                });
+            }
+
+            // Profile Completeness
+            const completeness = parseInt(this.formData.gmbCompleteness) || 0;
+            if (completeness < 80) {
+                findings.gmb.push({
+                    title: 'Incomplete GMB Profile',
+                    description: `Profile completeness at ${completeness}% reduces local search visibility. Complete profiles perform significantly better in local search results.`,
+                    severity: completeness < 60 ? 'poor' : 'fair'
+                });
+                findings.recommendations.push({
+                    title: 'Complete GMB Profile Optimization',
+                    description: 'Add missing business information: photos, hours, services, posts, Q&A responses, and ensure all fields are accurate and comprehensive.',
+                    priority: 'high'
+                });
+            }
+
+            // Reviews Analysis
+            const rating = parseFloat(this.formData.gmbRating) || 0;
+            const reviewCount = parseInt(this.formData.gmbReviews) || 0;
+            if (rating < 4.0 && rating > 0) {
+                findings.gmb.push({
+                    title: 'Below Average Review Rating',
+                    description: `Average rating of ${rating}/5 stars negatively impacts local search rankings and customer trust. Online reviews are crucial ranking factors.`,
+                    severity: rating < 3.5 ? 'poor' : 'fair'
+                });
+                findings.recommendations.push({
+                    title: 'Improve Review Management Strategy',
+                    description: 'Implement systematic review generation process, respond to all reviews professionally, and address negative feedback to improve overall rating.',
+                    priority: 'high'
+                });
+            }
+            if (reviewCount < 25) {
+                findings.gmb.push({
+                    title: 'Insufficient Review Volume',
+                    description: `Only ${reviewCount} reviews may limit local search competitiveness. Businesses with more reviews typically rank higher in local search.`,
+                    severity: 'fair'
+                });
+            }
+
+            // NAP Consistency
+            const napConsistency = parseInt(this.formData.napConsistency) || 0;
+            if (napConsistency < 85) {
+                findings.gmb.push({
+                    title: 'NAP Inconsistency Issues',
+                    description: `NAP (Name, Address, Phone) consistency at ${napConsistency}% creates confusion for search engines and weakens local SEO signals.`,
+                    severity: napConsistency < 70 ? 'poor' : 'fair'
+                });
+                findings.recommendations.push({
+                    title: 'Standardize NAP Information',
+                    description: 'Audit and standardize business information across all online directories, citations, and websites to improve local search authority.',
+                    priority: 'high'
+                });
+            }
+
+            // Local Rankings
+            const rankings = this.formData.localRankings;
+            if (rankings === 'poor') {
+                findings.gmb.push({
+                    title: 'Poor Local Search Rankings',
+                    description: 'Weak local search performance indicates need for comprehensive local SEO strategy implementation.',
+                    severity: 'poor'
+                });
+                findings.recommendations.push({
+                    title: 'Comprehensive Local SEO Strategy',
+                    description: 'Implement complete local SEO optimization: GMB optimization, citation building, local content creation, and review management.',
+                    priority: 'high'
+                });
+            }
+        }
+
         // Industry-Specific Recommendations
         this.addIndustrySpecificFindings(findings);
 
@@ -649,6 +931,7 @@ class SEOAuditTool {
                 <h1 class="report-title">SEO AUDIT REPORT</h1>
                 <div class="report-subtitle">Comprehensive SEO Analysis for ${this.formData.clientName}</div>
                 <div class="report-date">Generated on ${currentDate} by Empire Digisol</div>
+                <div class="print-only-header">EmpireDigisol SEO Audit</div>
             </div>
             
             <div class="report-content">
@@ -673,12 +956,26 @@ class SEOAuditTool {
                         <div class="score-label">Content Quality</div>
                         <div class="score-description">User Value</div>
                     </div>
+                    ${this.hasBacklinkData() ? `
+                    <div class="score-card">
+                        <div class="score-number" style="color: ${this.getScoreColor(scores.backlinks)}">${scores.backlinks}</div>
+                        <div class="score-label">Backlink Profile</div>
+                        <div class="score-description">Link Authority</div>
+                    </div>` : ''}
+                    ${this.hasGMBData() ? `
+                    <div class="score-card">
+                        <div class="score-number" style="color: ${this.getScoreColor(scores.gmb)}">${scores.gmb}</div>
+                        <div class="score-label">Local SEO / GMB</div>
+                        <div class="score-description">Local Presence</div>
+                    </div>` : ''}
                 </div>
 
                 ${this.createExecutiveSummary(scores)}
                 ${this.createFindingsSection('Technical SEO Analysis', findings.technical)}
                 ${this.createFindingsSection('On-Page SEO Analysis', findings.onPage)}
                 ${this.createFindingsSection('Content Analysis', findings.content)}
+                ${this.hasBacklinkData() && findings.backlinks.length > 0 ? this.createFindingsSection('Backlink Analysis', findings.backlinks) : ''}
+                ${this.hasGMBData() && findings.gmb.length > 0 ? this.createFindingsSection('Google My Business Analysis', findings.gmb) : ''}
                 ${this.createRecommendationsSection(findings.recommendations)}
                 ${this.createCompetitorAnalysis()}
                 ${this.createNextSteps()}
@@ -894,7 +1191,7 @@ class SEOAuditTool {
         }
 
         return `
-            <div class="section">
+            <div class="section competition-section">
                 <h3>Competitive Landscape Analysis</h3>
                 <p><strong>Primary Competitors:</strong> ${competitors}</p>
                 <p><strong>Competition Level:</strong> ${competitorStrength.charAt(0).toUpperCase() + competitorStrength.slice(1)} competition</p>
@@ -931,7 +1228,7 @@ class SEOAuditTool {
                     <p class="cta-subtitle">Partner with Empire Digisol to implement these recommendations and achieve measurable results</p>
                     <a href="https://empiredigisol.com/" class="cta-button" target="_blank">Get Started Today</a>
                     
-                    <div class="cta-features">
+                    <div class="cta-features print-hide">
                         <div class="cta-feature">
                             <h4>✓ Expert Implementation</h4>
                             <p>Our certified SEO specialists will implement every recommendation with precision and expertise</p>

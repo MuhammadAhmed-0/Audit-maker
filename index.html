@@ -28,6 +28,8 @@
             <button class="tab-btn" data-tab="onpage">On-Page SEO</button>
             <button class="tab-btn" data-tab="content">Content Analysis</button>
             <button class="tab-btn" data-tab="competitors">Competitors</button>
+            <button class="tab-btn" data-tab="backlinks">Backlink Analysis</button>
+            <button class="tab-btn" data-tab="gmb">GMB Analysis</button>
             <button class="tab-btn" data-tab="report">Audit Report</button>
         </nav>
 
@@ -400,6 +402,209 @@
                     <div class="form-group full-width">
                         <label for="opportunityAreas">Opportunity Areas</label>
                         <textarea id="opportunityAreas" placeholder="Specific areas where the client can outperform competitors"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backlink Analysis Tab -->
+            <div class="tab-panel" id="backlinks">
+                <div class="panel-header">
+                    <h2>Backlink Analysis</h2>
+                    <p>Comprehensive backlink profile assessment and link building opportunities</p>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="totalBacklinks">Total Backlinks</label>
+                        <input type="number" id="totalBacklinks" min="0" placeholder="150">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="referringDomains">Referring Domains</label>
+                        <input type="number" id="referringDomains" min="0" placeholder="75">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="domainAuthority">Domain Authority (DA)</label>
+                        <input type="number" id="domainAuthority" min="0" max="100" placeholder="45">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pageAuthority">Page Authority (PA)</label>
+                        <input type="number" id="pageAuthority" min="0" max="100" placeholder="40">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="backlinkQuality">Overall Backlink Quality</label>
+                        <select id="backlinkQuality">
+                            <option value="">Select Quality</option>
+                            <option value="excellent">Excellent (High DA/DR sites)</option>
+                            <option value="good">Good (Mixed quality)</option>
+                            <option value="fair">Fair (Some low quality)</option>
+                            <option value="poor">Poor (Many low quality/spam)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="anchorTextDiversity">Anchor Text Diversity</label>
+                        <select id="anchorTextDiversity">
+                            <option value="">Select Diversity</option>
+                            <option value="excellent">Excellent (Natural mix)</option>
+                            <option value="good">Good (Mostly natural)</option>
+                            <option value="fair">Fair (Some over-optimization)</option>
+                            <option value="poor">Poor (Over-optimized/risky)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toxicLinks">Toxic/Spam Links (%)</label>
+                        <input type="number" id="toxicLinks" min="0" max="100" placeholder="5">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="linkVelocity">Link Building Velocity</label>
+                        <select id="linkVelocity">
+                            <option value="">Select Velocity</option>
+                            <option value="natural">Natural Growth</option>
+                            <option value="slow">Slow Growth</option>
+                            <option value="fast">Fast Growth</option>
+                            <option value="concerning">Concerning (Too fast)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="competitorBacklinks">Competitor Average Backlinks</label>
+                        <input type="number" id="competitorBacklinks" min="0" placeholder="300">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="brandMentions">Unlinked Brand Mentions</label>
+                        <input type="number" id="brandMentions" min="0" placeholder="25">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="topBacklinkSources">Top Backlink Sources (comma separated)</label>
+                        <textarea id="topBacklinkSources" placeholder="industry-site.com, news-website.com, business-directory.com"></textarea>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="linkBuildingOpportunities">Link Building Opportunities Identified</label>
+                        <textarea id="linkBuildingOpportunities" placeholder="List potential link building opportunities like guest posting, broken link building, etc."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GMB Analysis Tab -->
+            <div class="tab-panel" id="gmb">
+                <div class="panel-header">
+                    <h2>Google My Business (GMB) Analysis</h2>
+                    <p>Local SEO and Google My Business optimization assessment</p>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="gmbClaimed">GMB Profile Status</label>
+                        <select id="gmbClaimed">
+                            <option value="">Select Status</option>
+                            <option value="claimed-verified">Claimed & Verified</option>
+                            <option value="claimed-unverified">Claimed but Unverified</option>
+                            <option value="unclaimed">Unclaimed</option>
+                            <option value="not-applicable">Not Applicable</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gmbCompleteness">Profile Completeness (%)</label>
+                        <input type="number" id="gmbCompleteness" min="0" max="100" placeholder="85">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gmbRating">Average Rating</label>
+                        <input type="number" id="gmbRating" min="0" max="5" step="0.1" placeholder="4.2">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gmbReviews">Total Reviews</label>
+                        <input type="number" id="gmbReviews" min="0" placeholder="150">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gmbPhotos">Number of Photos</label>
+                        <input type="number" id="gmbPhotos" min="0" placeholder="25">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gmbPosts">Recent Posts Activity</label>
+                        <select id="gmbPosts">
+                            <option value="">Select Activity</option>
+                            <option value="excellent">Regular posting (Weekly)</option>
+                            <option value="good">Occasional posting (Monthly)</option>
+                            <option value="fair">Infrequent posting (Quarterly)</option>
+                            <option value="poor">No recent posts</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gmbProducts">Products/Services Listed</label>
+                        <select id="gmbProducts">
+                            <option value="">Select Status</option>
+                            <option value="comprehensive">Comprehensive listing</option>
+                            <option value="partial">Partial listing</option>
+                            <option value="basic">Basic listing</option>
+                            <option value="none">None listed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gmbHours">Business Hours Accuracy</label>
+                        <select id="gmbHours">
+                            <option value="">Select Accuracy</option>
+                            <option value="accurate">Accurate & Updated</option>
+                            <option value="mostly-accurate">Mostly Accurate</option>
+                            <option value="outdated">Outdated</option>
+                            <option value="missing">Missing</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="napConsistency">NAP Consistency Score (%)</label>
+                        <input type="number" id="napConsistency" min="0" max="100" placeholder="75">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="localCitations">Local Citations Count</label>
+                        <input type="number" id="localCitations" min="0" placeholder="50">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gmbInsights">GMB Insights Available</label>
+                        <select id="gmbInsights">
+                            <option value="">Select Availability</option>
+                            <option value="full-access">Full access with data</option>
+                            <option value="limited-access">Limited access</option>
+                            <option value="no-access">No access</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="localRankings">Local Search Rankings</label>
+                        <select id="localRankings">
+                            <option value="">Select Performance</option>
+                            <option value="excellent">Top 3 for main keywords</option>
+                            <option value="good">Top 10 for main keywords</option>
+                            <option value="fair">Inconsistent rankings</option>
+                            <option value="poor">Poor/no local rankings</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="gmbCategories">Business Categories Listed</label>
+                        <textarea id="gmbCategories" placeholder="Primary: Digital Marketing Agency, Secondary: SEO Service, Web Design Service"></textarea>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="localCompetitors">Local Competitors Analysis</label>
+                        <textarea id="localCompetitors" placeholder="Analysis of local competitor GMB profiles and their performance"></textarea>
                     </div>
                 </div>
             </div>

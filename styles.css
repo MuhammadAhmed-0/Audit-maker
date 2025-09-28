@@ -418,7 +418,7 @@ body {
 }
 
 .finding-description {
-    color: #2d3748;
+    color: #fffaef;
     font-size: 0.95rem;
 }
 
@@ -638,6 +638,11 @@ body {
     .cta-title {
         font-size: 2rem;
     }
+}
+
+/* Hide print-only elements on screen */
+.print-only-header {
+    display: none;
 }
 
 /* Enhanced Print Styles for A4 Paper */
@@ -1044,8 +1049,49 @@ body {
     
     .score-overview,
     .section,
-    .recommendations,
-    .cta-section {
+    .recommendations {
         page-break-inside: avoid;
+    }
+    
+    /* Hide CTA features but keep title, subtitle and button */
+    .print-hide {
+        display: none !important;
+    }
+    
+    /* Hide regular header elements in print */
+    .report-title,
+    .report-subtitle,
+    .report-date {
+        display: none !important;
+    }
+    
+    /* Remove header background and styling in print */
+    .report-header {
+        background: none !important;
+        padding: 0 !important;
+        border: none !important;
+        margin: 0 !important;
+    }
+    
+    .report-header::before {
+        display: none !important;
+    }
+    
+    /* Make print-only header visible in print */
+    .print-only-header {
+        display: block !important;
+        text-align: right !important;
+        font-size: 14pt !important;
+        font-weight: 600 !important;
+        color: #000 !important;
+        margin-bottom: 20pt !important;
+        border-bottom: 1pt solid #ccc !important;
+        padding-bottom: 6pt !important;
+    }
+    
+    /* Add spacing above competition section */
+    .competition-section h3 {
+        margin-top: 24pt !important;
+        padding-top: 12pt !important;
     }
 }

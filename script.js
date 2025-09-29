@@ -45,7 +45,7 @@ class SEOAuditTool {
         const requiredFields = [
             'clientName', 'websiteUrl', 'industry', 'primaryKeywords'
         ];
-        
+
         const isValid = requiredFields.every(fieldId => {
             const field = document.getElementById(fieldId);
             return field && field.value.trim() !== '';
@@ -74,12 +74,12 @@ class SEOAuditTool {
         // Calculate overall score - include optional sections only if they have data
         let totalScore = scores.technical + scores.onPage + scores.content;
         let sectionCount = 3;
-        
+
         if (this.hasBacklinkData()) {
             totalScore += scores.backlinks;
             sectionCount++;
         }
-        
+
         if (this.hasGMBData()) {
             totalScore += scores.gmb;
             sectionCount++;
@@ -91,48 +91,48 @@ class SEOAuditTool {
 
     calculateTechnicalScore() {
         let score = 100;
-        
+
         // Page load speed scoring
         const speed = parseFloat(this.formData.pageLoadSpeed) || 0;
         if (speed > 3) score -= 20;
         else if (speed > 2) score -= 10;
-        
+
         // Mobile responsive scoring
         const mobile = this.formData.mobileResponsive;
         if (mobile === 'poor') score -= 25;
         else if (mobile === 'fair') score -= 15;
         else if (mobile === 'good') score -= 5;
-        
+
         // SSL Certificate
         if (this.formData.sslCertificate === 'no') score -= 15;
-        
+
         // XML Sitemap
         const sitemap = this.formData.xmlSitemap;
         if (sitemap === 'missing') score -= 15;
         else if (sitemap === 'outdated') score -= 8;
-        
+
         // Core Web Vitals
         const cwv = parseInt(this.formData.coreWebVitals) || 0;
         if (cwv < 50) score -= 20;
         else if (cwv < 75) score -= 10;
-        
+
         return Math.max(0, Math.min(100, score));
     }
 
     calculateOnPageScore() {
         let score = 100;
         const factors = [
-            'titleTags', 'metaDescriptions', 'headerTags', 
+            'titleTags', 'metaDescriptions', 'headerTags',
             'keywordOptimization', 'imageOptimization', 'internalLinking'
         ];
-        
+
         factors.forEach(factor => {
             const value = this.formData[factor];
             if (value === 'poor') score -= 15;
             else if (value === 'fair') score -= 10;
             else if (value === 'good') score -= 5;
         });
-        
+
         return Math.max(0, Math.min(100, score));
     }
 
@@ -141,56 +141,56 @@ class SEOAuditTool {
         const factors = [
             'contentQuality', 'contentLength', 'contentFreshness', 'keywordDensity'
         ];
-        
+
         factors.forEach(factor => {
             const value = this.formData[factor];
             if (value === 'poor') score -= 20;
             else if (value === 'fair') score -= 12;
             else if (value === 'good') score -= 5;
         });
-        
+
         // Readability bonus/penalty
         const readability = parseInt(this.formData.readabilityScore) || 0;
         if (readability < 60) score -= 10;
         else if (readability > 80) score += 5;
-        
+
         return Math.max(0, Math.min(100, score));
     }
 
     calculateBacklinkScore() {
         if (!this.hasBacklinkData()) return 0;
-        
+
         let score = 100;
-        
+
         // Domain Authority scoring
         const da = parseInt(this.formData.domainAuthority) || 0;
         if (da < 20) score -= 25;
         else if (da < 35) score -= 15;
         else if (da < 50) score -= 8;
-        
+
         // Backlink quality scoring
         const quality = this.formData.backlinkQuality;
         if (quality === 'poor') score -= 30;
         else if (quality === 'fair') score -= 20;
         else if (quality === 'good') score -= 8;
-        
+
         // Anchor text diversity
         const diversity = this.formData.anchorTextDiversity;
         if (diversity === 'poor') score -= 25;
         else if (diversity === 'fair') score -= 15;
         else if (diversity === 'good') score -= 5;
-        
+
         // Toxic links penalty
         const toxicPercent = parseInt(this.formData.toxicLinks) || 0;
         if (toxicPercent > 15) score -= 30;
         else if (toxicPercent > 10) score -= 20;
         else if (toxicPercent > 5) score -= 10;
-        
+
         // Link velocity concerns
         const velocity = this.formData.linkVelocity;
         if (velocity === 'concerning') score -= 20;
         else if (velocity === 'fast') score -= 10;
-        
+
         // Competitor comparison
         const totalBacklinks = parseInt(this.formData.totalBacklinks) || 0;
         const competitorBacklinks = parseInt(this.formData.competitorBacklinks) || 0;
@@ -199,26 +199,26 @@ class SEOAuditTool {
         } else if (competitorBacklinks > 0 && totalBacklinks < competitorBacklinks * 0.6) {
             score -= 8;
         }
-        
+
         return Math.max(0, Math.min(100, score));
     }
 
     calculateGMBScore() {
         if (!this.hasGMBData()) return 0;
-        
+
         let score = 100;
-        
+
         // Profile status
         const status = this.formData.gmbClaimed;
         if (status === 'unclaimed') score -= 40;
         else if (status === 'claimed-unverified') score -= 20;
-        
+
         // Profile completeness
         const completeness = parseInt(this.formData.gmbCompleteness) || 0;
         if (completeness < 60) score -= 25;
         else if (completeness < 80) score -= 15;
         else if (completeness < 95) score -= 8;
-        
+
         // Reviews and rating
         const rating = parseFloat(this.formData.gmbRating) || 0;
         const reviewCount = parseInt(this.formData.gmbReviews) || 0;
@@ -226,24 +226,24 @@ class SEOAuditTool {
         else if (rating < 4.0) score -= 10;
         if (reviewCount < 10) score -= 15;
         else if (reviewCount < 25) score -= 8;
-        
+
         // NAP consistency
         const napConsistency = parseInt(this.formData.napConsistency) || 0;
         if (napConsistency < 70) score -= 20;
         else if (napConsistency < 85) score -= 10;
-        
+
         // Local rankings
         const rankings = this.formData.localRankings;
         if (rankings === 'poor') score -= 25;
         else if (rankings === 'fair') score -= 15;
         else if (rankings === 'good') score -= 5;
-        
+
         // Activity factors
         const posts = this.formData.gmbPosts;
         if (posts === 'poor') score -= 15;
         else if (posts === 'fair') score -= 10;
         else if (posts === 'good') score -= 3;
-        
+
         return Math.max(0, Math.min(100, score));
     }
 
@@ -284,7 +284,7 @@ class SEOAuditTool {
         };
 
         // TECHNICAL SEO ANALYSIS - Comprehensive findings
-        
+
         // Page Load Speed Analysis
         const speed = parseFloat(this.formData.pageLoadSpeed) || 0;
         if (speed > 0) {
@@ -870,7 +870,7 @@ class SEOAuditTool {
 
     addIndustrySpecificFindings(findings) {
         const industry = this.formData.industry;
-        
+
         if (industry === 'localbusiness') {
             findings.recommendations.push({
                 title: 'Local SEO Optimization',
@@ -907,14 +907,14 @@ class SEOAuditTool {
         this.collectFormData();
         const scores = this.calculateScores();
         const findings = this.generateFindings();
-        
+
         const reportHTML = this.createReportHTML(scores, findings);
-        
+
         this.auditReport.innerHTML = reportHTML;
         this.auditReport.style.display = 'block';
         this.reportPlaceholder.style.display = 'none';
         this.printReportBtn.disabled = false;
-        
+
         // Switch to report tab
         this.switchTab('report');
     }
@@ -930,8 +930,7 @@ class SEOAuditTool {
             <div class="report-header">
                 <h1 class="report-title">SEO AUDIT REPORT</h1>
                 <div class="report-subtitle">Comprehensive SEO Analysis for ${this.formData.clientName}</div>
-                <div class="report-date">Generated on ${currentDate} by Empire Digisol</div>
-                <div class="print-only-header">EmpireDigisol SEO Audit</div>
+                <div class="report-date"> Created on ${currentDate} by Empire Digisol</div>
             </div>
             
             <div class="report-content">
@@ -939,7 +938,7 @@ class SEOAuditTool {
                     <div class="score-card">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.overall)}">${scores.overall}</div>
                         <div class="score-label">Overall Score</div>
-                        <div class="score-description ">Grade: ${this.getScoreGrade(scores.overall)}</div>
+                        <div class="score-description">Grade: ${this.getScoreGrade(scores.overall)}</div>
                     </div>
                     <div class="score-card">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.technical)}">${scores.technical}</div>
@@ -951,19 +950,19 @@ class SEOAuditTool {
                         <div class="score-label">On-Page SEO</div>
                         <div class="score-description">Content Optimization</div>
                     </div>
-                    <div class="score-card ">
+                    <div class="score-card">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.content)}">${scores.content}</div>
                         <div class="score-label">Content Quality</div>
                         <div class="score-description">User Value</div>
                     </div>
                     ${this.hasBacklinkData() ? `
-                    <div class="score-card ">
+                    <div class="score-card">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.backlinks)}">${scores.backlinks}</div>
                         <div class="score-label">Backlink Profile</div>
                         <div class="score-description">Link Authority</div>
                     </div>` : ''}
                     ${this.hasGMBData() ? `
-                    <div class="score-card ">
+                    <div class="score-card">
                         <div class="score-number" style="color: ${this.getScoreColor(scores.gmb)}">${scores.gmb}</div>
                         <div class="score-label">Local SEO / GMB</div>
                         <div class="score-description">Local Presence</div>
@@ -971,15 +970,15 @@ class SEOAuditTool {
                 </div>
 
                 ${this.createExecutiveSummary(scores)}
-                ${this.createFindingsSection('Technical SEO Analysis', findings.technical)}
-                ${this.createFindingsSection('On-Page SEO Analysis', findings.onPage)}
-                ${this.createFindingsSection('Content Analysis', findings.content)}
-                ${this.hasBacklinkData() && findings.backlinks.length > 0 ? this.createFindingsSection('Backlink Analysis', findings.backlinks) : ''}
-                ${this.hasGMBData() && findings.gmb.length > 0 ? this.createFindingsSection('Google My Business Analysis', findings.gmb) : ''}
-                ${this.createRecommendationsSection(findings.recommendations)}
-                ${this.createCompetitorAnalysis()}
+                ${this.createCleanFindingsSection('Technical SEO Analysis', findings.technical)}
+                ${this.createCleanFindingsSection('On-Page SEO Analysis', findings.onPage)}
+                ${this.createCleanFindingsSection('Content Analysis', findings.content)}
+                ${this.hasBacklinkData() && findings.backlinks.length > 0 ? this.createCleanFindingsSection('Backlink Analysis', findings.backlinks) : ''}
+                ${this.hasGMBData() && findings.gmb.length > 0 ? this.createCleanFindingsSection('Google My Business Analysis', findings.gmb) : ''}
+                ${this.createCleanRecommendationsSection(findings.recommendations)}
+                ${this.createCleanCompetitorAnalysis()}
                 ${this.createNextSteps()}
-                ${this.createCTASection()}
+                ${this.createSimpleCTA()}
             </div>
         `;
     }
@@ -989,12 +988,12 @@ class SEOAuditTool {
         let keyIssues = [];
         let strengths = [];
         let impactStatement = '';
-        
+
         // Analyze scores to provide specific insights
         if (scores.technical < 60) keyIssues.push('technical infrastructure');
         if (scores.onPage < 60) keyIssues.push('on-page optimization');
         if (scores.content < 60) keyIssues.push('content quality and optimization');
-        
+
         if (scores.technical >= 80) strengths.push('strong technical foundation');
         if (scores.onPage >= 80) strengths.push('well-optimized on-page elements');
         if (scores.content >= 80) strengths.push('high-quality content strategy');
@@ -1028,9 +1027,9 @@ class SEOAuditTool {
         }
 
         return `
-            <div class="section">
+            <div class="clean-section page-break-before">
                 <h3>Executive Summary</h3>
-                <div style="background: #f8f9fa; padding: 15pt; border-radius: 8pt; margin-bottom: 15pt;">
+                <div class="client-info">
                     <p><strong>Client:</strong> ${this.formData.clientName || 'N/A'}</p>
                     <p><strong>Website:</strong> ${this.formData.websiteUrl || 'N/A'}</p>
                     <p><strong>Industry:</strong> ${this.getIndustryDisplayName(industry)}</p>
@@ -1038,7 +1037,6 @@ class SEOAuditTool {
                     <p><strong>Primary Keywords:</strong> ${this.formData.primaryKeywords || 'N/A'}</p>
                     <p><strong>Business Goals:</strong> ${this.formData.businessGoals || 'N/A'}</p>
                 </div>
-                <div class="html2pdf__page-break"></div> <!-- Add this line! -->
                 
                 <h4>Performance Overview</h4>
                 <p>${summaryText}${industryContext}</p>
@@ -1047,7 +1045,7 @@ class SEOAuditTool {
                 <p>${impactStatement}</p>
                 
                 <h4>Key Findings Summary</h4>
-                <ul style="margin: 10pt 0; padding-left: 20pt;">
+                <ul>
                     <li><strong>Technical SEO Score:</strong> ${scores.technical}/100 - ${this.getScoreAnalysis(scores.technical, 'technical')}</li>
                     <li><strong>On-Page SEO Score:</strong> ${scores.onPage}/100 - ${this.getScoreAnalysis(scores.onPage, 'onpage')}</li>
                     <li><strong>Content Quality Score:</strong> ${scores.content}/100 - ${this.getScoreAnalysis(scores.content, 'content')}</li>
@@ -1107,39 +1105,211 @@ class SEOAuditTool {
         }
     }
 
-    createFindingsSection(title, findings) {
-        if (findings.length === 0) {
-            return `
-                <div class="section">
-                    <h3>${title}</h3>
-                    <ul class="findings-list">
-                        <li class="excellent">
-                            <div class="finding-title">Excellent Performance Detected</div>
-                            <div class="finding-description">This section demonstrates strong optimization with no critical issues identified. Continue current best practices to maintain this high standard.</div>
-                        </li>
-                    </ul>
-                </div>
-            `;
-        }
 
-        const findingsHTML = findings.map(finding => `
-            <li class="${finding.severity}">
-                <div class="finding-title">${finding.title}</div>
-                <div class="finding-description">${finding.description}</div>
-            </li>
-        `).join('');
 
+
+    createNextSteps() {
         return `
-            <div class="section">
-                <h3>${title}</h3>
-                <ul class="findings-list">
-                    ${findingsHTML}
-                </ul>
+            <div class="clean-section">
+                <h3>Strategic Implementation Roadmap</h3>
+                <ol style="padding-left: 1.5rem; line-height: 1.7;">
+                    <li style="margin-bottom: 1rem;"><strong>Immediate Actions (Week 1-2):</strong> Address critical technical issues including site speed, SSL certificate, and mobile responsiveness problems</li>
+                    <li style="margin-bottom: 1rem;"><strong>Short-term Optimization (Month 1):</strong> Optimize title tags, meta descriptions, and header structure across all key pages</li>
+                    <li style="margin-bottom: 1rem;"><strong>Content Enhancement (Month 1-2):</strong> Develop comprehensive, keyword-rich content addressing identified gaps and user intent</li>
+                    <li style="margin-bottom: 1rem;"><strong>Technical Implementation (Month 2):</strong> Implement structured data, improve site architecture, and enhance internal linking strategy</li>
+                    <li style="margin-bottom: 1rem;"><strong>Performance Monitoring (Ongoing):</strong> Set up comprehensive analytics tracking and establish regular performance review cycles</li>
+                    <li style="margin-bottom: 1rem;"><strong>Continuous Optimization (Ongoing):</strong> Implement regular content updates, technical maintenance, and strategy refinements based on performance data</li>
+                </ol>
             </div>
         `;
     }
 
-    createRecommendationsSection(recommendations) {
+
+    createSimpleCTA() {
+        return `
+            <div class="simple-cta">
+                <h3>Next Steps</h3>
+                <p>For professional implementation of these SEO recommendations, contact Empire Digisol at empiredigisol.com</p>
+                <p><strong>Ready to improve your search engine rankings? Get started today.</strong></p>
+            </div>
+        `;
+    }
+
+    createPDFExecutiveSummary(scores) {
+        const industry = this.formData.industry;
+        let summaryText = '';
+
+        if (scores.overall >= 80) {
+            summaryText = `Excellent SEO performance with an overall score of ${scores.overall}/100. The website demonstrates strong foundations and is well-positioned for search engine success.`;
+        } else if (scores.overall >= 60) {
+            summaryText = `Good SEO performance with an overall score of ${scores.overall}/100. The website shows solid foundations with opportunities for strategic improvements.`;
+        } else if (scores.overall >= 40) {
+            summaryText = `Moderate SEO performance with a score of ${scores.overall}/100. The website has foundational elements but requires significant improvements.`;
+        } else {
+            summaryText = `Below-average SEO performance with a score of ${scores.overall}/100. Critical issues require immediate attention to improve search visibility.`;
+        }
+
+        return `
+            <div class="pdf-section pdf-keep-together page-break-before">
+                <h2>Executive Summary</h2>
+                <div class="pdf-client-info">
+                    <p><strong>Client:</strong> ${this.formData.clientName || 'N/A'}</p>
+                    <p><strong>Website:</strong> ${this.formData.websiteUrl || 'N/A'}</p>
+                    <p><strong>Industry:</strong> ${this.getIndustryDisplayName(industry)}</p>
+                    <p><strong>Target Location:</strong> ${this.formData.targetLocation || 'N/A'}</p>
+                    <p><strong>Primary Keywords:</strong> ${this.formData.primaryKeywords || 'N/A'}</p>
+                    <p><strong>Business Goals:</strong> ${this.formData.businessGoals || 'N/A'}</p>
+                </div>
+                
+                <h3>Performance Overview</h3>
+                <p>${summaryText}</p>
+                
+                <h3>Key Findings Summary</h3>
+                <ul>
+                    <li><strong>Technical SEO Score:</strong> ${scores.technical}/100 - ${this.getScoreAnalysis(scores.technical, 'technical')}</li>
+                    <li><strong>On-Page SEO Score:</strong> ${scores.onPage}/100 - ${this.getScoreAnalysis(scores.onPage, 'onpage')}</li>
+                    <li><strong>Content Quality Score:</strong> ${scores.content}/100 - ${this.getScoreAnalysis(scores.content, 'content')}</li>
+                </ul>
+                
+                <p><em>This comprehensive audit provides actionable insights for improving your website's search engine performance and competitive positioning.</em></p>
+            </div>
+        `;
+    }
+
+    createPDFSection(title, findings) {
+        if (findings.length === 0) {
+            return `
+                <div class="pdf-section pdf-keep-together">
+                    <h2>${title}</h2>
+                    <p><strong>Excellent Performance:</strong> This section demonstrates strong optimization with no critical issues identified.</p>
+                </div>
+            `;
+        }
+
+        const findingsHTML = findings.map(finding => {
+            const priorityText = finding.severity === 'critical' ? 'High Priority' :
+                finding.severity === 'warning' ? 'Medium Priority' :
+                    finding.severity === 'info' ? 'Low Priority' : 'Recommendation';
+
+            return `
+                <div class="pdf-finding">
+                    <h4>${finding.title} <span class="pdf-priority">(${priorityText})</span></h4>
+                    <p>${finding.description}</p>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="pdf-section">
+                <h2>${title}</h2>
+                ${findingsHTML}
+            </div>
+        `;
+    }
+
+    createPDFRecommendations(recommendations) {
+        if (recommendations.length === 0) {
+            recommendations = [
+                {
+                    title: 'Maintain Current Excellence',
+                    description: 'Your website shows strong SEO performance. Continue monitoring and maintaining current best practices.',
+                    priority: 'low'
+                }
+            ];
+        }
+
+        const recommendationsHTML = recommendations.map(rec => {
+            const priorityText = rec.priority === 'high' ? 'High Priority' :
+                rec.priority === 'medium' ? 'Medium Priority' : 'Low Priority';
+
+            return `
+                <div class="pdf-finding">
+                    <h4>${rec.title} <span class="pdf-priority">(${priorityText})</span></h4>
+                    <p>${rec.description}</p>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="pdf-section">
+                <h2>Strategic Recommendations</h2>
+                ${recommendationsHTML}
+            </div>
+        `;
+    }
+
+    createPDFCompetitorAnalysis() {
+        const competitors = this.formData.topCompetitors || 'Not provided';
+        const competitorStrength = this.formData.competitorStrength || 'Not assessed';
+
+        return `
+            <div class="pdf-section pdf-keep-together">
+                <h2>Competitive Analysis</h2>
+                <p><strong>Primary Competitors:</strong> ${competitors}</p>
+                <p><strong>Competition Level:</strong> ${competitorStrength.charAt(0).toUpperCase() + competitorStrength.slice(1)} competition</p>
+                ${this.formData.competitorAnalysis ? `<p><strong>Analysis:</strong> ${this.formData.competitorAnalysis}</p>` : ''}
+            </div>
+        `;
+    }
+
+    createPDFNextSteps() {
+        return `
+            <div class="pdf-section">
+                <h2>Implementation Roadmap</h2>
+                <ol>
+                    <li><strong>Immediate Actions (Week 1-2):</strong> Address critical technical issues including site speed and mobile responsiveness</li>
+                    <li><strong>Short-term Optimization (Month 1):</strong> Optimize title tags, meta descriptions, and header structure</li>
+                    <li><strong>Content Enhancement (Month 1-2):</strong> Develop comprehensive, keyword-rich content</li>
+                    <li><strong>Technical Implementation (Month 2):</strong> Implement structured data and improve site architecture</li>
+                    <li><strong>Ongoing Optimization:</strong> Regular content updates and performance monitoring</li>
+                </ol>
+            </div>
+        `;
+    }
+
+    createPDFCTA() {
+        return `
+            <div class="pdf-cta pdf-keep-together">
+                <h2 style="margin-top: 0; font-size: 14pt;">Next Steps</h2>
+                <p>For professional implementation of these SEO recommendations, contact <strong>Empire Digisol</strong></p>
+                <p><strong>Ready to improve your search engine rankings? Get started today.</strong></p>
+                <p style="margin-bottom: 0;">Visit: empiredigisol.com</p>
+            </div>
+        `;
+    }
+
+    createCleanFindingsSection(title, findings) {
+        if (findings.length === 0) {
+            return `
+                <div class="clean-section">
+                    <h3>${title}</h3>
+                    <p><strong>Excellent Performance:</strong> This section demonstrates strong optimization with no critical issues identified. Continue current best practices to maintain this high standard.</p>
+                </div>
+            `;
+        }
+
+        const findingsHTML = findings.map(finding => {
+            const priorityText = finding.severity === 'critical' ? 'High Priority' :
+                finding.severity === 'warning' ? 'Medium Priority' :
+                    finding.severity === 'info' ? 'Low Priority' : 'Recommendation';
+
+            return `
+                <div class="clean-finding">
+                    <h4>${finding.title} <span class="priority">(${priorityText})</span></h4>
+                    <p>${finding.description}</p>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="clean-section">
+                <h3>${title}</h3>
+                ${findingsHTML}
+            </div>
+        `;
+    }
+
+    createCleanRecommendationsSection(recommendations) {
         if (recommendations.length === 0) {
             recommendations = [
                 {
@@ -1155,29 +1325,33 @@ class SEOAuditTool {
             ];
         }
 
-        const recommendationsHTML = recommendations.map(rec => `
-            <div class="recommendation-item">
-                <div class="priority ${rec.priority}">${rec.priority.toUpperCase()} PRIORITY</div>
-                <div class="finding-title">${rec.title}</div>
-                <div class="finding-description">${rec.description}</div>
-            </div>
-        `).join('');
+        const recommendationsHTML = recommendations.map(rec => {
+            const priorityText = rec.priority === 'high' ? 'High Priority' :
+                rec.priority === 'medium' ? 'Medium Priority' : 'Low Priority';
+
+            return `
+                <div class="clean-recommendation">
+                    <h4>${rec.title} <span class="priority">(${priorityText})</span></h4>
+                    <p>${rec.description}</p>
+                </div>
+            `;
+        }).join('');
 
         return `
-            <div class="recommendations">
+            <div class="clean-section">
                 <h3>Strategic Recommendations & Action Items</h3>
                 ${recommendationsHTML}
             </div>
         `;
     }
 
-    createCompetitorAnalysis() {
+    createCleanCompetitorAnalysis() {
         const competitors = this.formData.topCompetitors || 'Not provided';
         const competitorStrength = this.formData.competitorStrength || 'Not assessed';
         const contentGaps = this.formData.competitorContentGap || 'Not analyzed';
 
         let competitiveInsight = '';
-        switch(competitorStrength) {
+        switch (competitorStrength) {
             case 'weak':
                 competitiveInsight = 'The competitive landscape presents excellent opportunities for rapid market share growth through strategic SEO implementation.';
                 break;
@@ -1192,12 +1366,11 @@ class SEOAuditTool {
         }
 
         return `
-            <div class="section competition-section">
+            <div class="clean-section">
                 <h3>Competitive Landscape Analysis</h3>
                 <p><strong>Primary Competitors:</strong> ${competitors}</p>
                 <p><strong>Competition Level:</strong> ${competitorStrength.charAt(0).toUpperCase() + competitorStrength.slice(1)} competition</p>
                 <p><strong>Content Gap Opportunities:</strong> ${contentGaps.charAt(0).toUpperCase() + contentGaps.slice(1)} opportunities for content expansion</p>
-                <br>
                 <p>${competitiveInsight}</p>
                 ${this.formData.competitorAnalysis ? `<p><strong>Detailed Analysis:</strong> ${this.formData.competitorAnalysis}</p>` : ''}
                 ${this.formData.opportunityAreas ? `<p><strong>Key Opportunity Areas:</strong> ${this.formData.opportunityAreas}</p>` : ''}
@@ -1205,115 +1378,79 @@ class SEOAuditTool {
         `;
     }
 
-    createNextSteps() {
-        return `
-            <div class="section">
-                <h3>Strategic Implementation Roadmap</h3>
-                <ol style="padding-left: 1.5rem; line-height: 1.6;">
-                    <li style="margin-bottom: 1rem;"><strong>Immediate Actions (Week 1-2):</strong> Address critical technical issues including site speed, SSL certificate, and mobile responsiveness problems</li>
-                    <li style="margin-bottom: 1rem;"><strong>Short-term Optimization (Month 1):</strong> Optimize title tags, meta descriptions, and header structure across all key pages</li>
-                    <li style="margin-bottom: 1rem;"><strong>Content Enhancement (Month 1-2):</strong> Develop comprehensive, keyword-rich content addressing identified gaps and user intent</li>
-                    <li style="margin-bottom: 1rem;"><strong>Technical Implementation (Month 2):</strong> Implement structured data, improve site architecture, and enhance internal linking strategy</li>
-                    <li style="margin-bottom: 1rem;"><strong>Performance Monitoring (Ongoing):</strong> Set up comprehensive analytics tracking and establish regular performance review cycles</li>
-                    <li style="margin-bottom: 1rem;"><strong>Continuous Optimization (Ongoing):</strong> Implement regular content updates, technical maintenance, and strategy refinements based on performance data</li>
-                </ol>
-            </div>
-        `;
+    printReport() {
+        // Get the report content
+        const reportElement = document.getElementById('auditReport');
+
+        if (!reportElement || reportElement.innerHTML.trim() === '') {
+            alert('Please generate a report first before downloading PDF.');
+            return;
+        }
+
+        // Check if html2pdf is available
+        if (typeof html2pdf === 'undefined') {
+            alert('PDF library not loaded. Please refresh the page and try again.');
+            return;
+        }
+
+        try {
+            const options = {
+                margin: [0.75, 0.6, 0.75, 0.6],
+                filename: `SEO-Audit-Report-${this.formData.clientName || 'Client'}-${new Date().toISOString().split('T')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 1.5,
+                    useCORS: true,
+                    logging: false,
+                    letterRendering: true,
+                    allowTaint: false,
+                    backgroundColor: '#ffffff'
+                },
+                jsPDF: {
+                    unit: 'in',
+                    format: 'a4',
+                    orientation: 'portrait'
+                },
+                pagebreak: {
+                    mode: ['css', 'legacy'],
+                    // before: ['.clean-section'],
+                    // after: ['.page-break-after'],
+                    avoid: [
+                        '.score-card',
+                        '.clean-finding',
+                        '.client-info',
+                        '.simple-cta',
+                        '.clean-section',
+                        'h3',  // section main headings
+                        'h4'   // subsection headings
+                    ]
+                }
+            };
+
+            const originalText = this.printReportBtn.textContent;
+            this.printReportBtn.textContent = 'Generating Professional PDF...';
+            this.printReportBtn.disabled = true;
+
+            // Use the actual report element with improved settings
+            html2pdf()
+                .set(options)
+                .from(reportElement)
+                .save()
+                .then(() => {
+                    this.printReportBtn.textContent = originalText;
+                    this.printReportBtn.disabled = false;
+                })
+                .catch((error) => {
+                    console.error('PDF generation error:', error);
+                    alert('Error generating PDF: ' + error.message);
+                    this.printReportBtn.textContent = originalText;
+                    this.printReportBtn.disabled = false;
+                });
+        } catch (error) {
+            console.error('PDF setup error:', error);
+            alert('Error setting up PDF generation: ' + error.message);
+        }
     }
-
-    createCTASection() {
-        return `
-            <div class="cta-section">
-                <div class="cta-content">
-                    <h2 class="cta-title">Ready to Transform Your SEO Performance?</h2>
-                    <p class="cta-subtitle">Partner with Empire Digisol to implement these recommendations and achieve measurable results</p>
-                    <a href="https://empiredigisol.com/" class="cta-button" target="_blank">Get Started Today</a>
-                    
-                    <div class="cta-features print-hide">
-                        <div class="cta-feature">
-                            <h4>✓ Expert Implementation</h4>
-                            <p>Our certified SEO specialists will implement every recommendation with precision and expertise</p>
-                        </div>
-                        <div class="cta-feature">
-                            <h4>✓ Measurable Results</h4>
-                            <p>Track your progress with detailed reporting and transparent metrics that show real ROI</p>
-                        </div>
-                        <div class="cta-feature">
-                            <h4>✓ Ongoing Support</h4>
-                            <p>Continuous optimization and support to maintain and improve your search engine rankings</p>
-                        </div>
-                        <div class="cta-feature">
-                            <h4>✓ Proven Track Record</h4>
-                            <p>Join hundreds of satisfied clients who have achieved significant organic traffic growth</p>
-                        </div>
-                    </div>
-                    
-                    <div class="print-hide" style="margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                        <p style="margin-bottom: 1rem; font-size: 1.1rem;"><strong>🚀 Special Offer: Free 30-Minute Strategy Session</strong></p>
-                        <p style="margin-bottom: 0;">Contact us today for a complimentary consultation where we'll discuss your specific needs and create a customized SEO strategy for your business.</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-printReport() {
-    // Get the report content
-    const reportElement = document.getElementById('auditReport');
-    
-    if (!reportElement || reportElement.innerHTML.trim() === '') {
-        alert('Please generate a report first before downloading PDF.');
-        return;
-    }
-
-    // Check if html2pdf is available
-    if (typeof html2pdf === 'undefined') {
-        alert('PDF library not loaded. Please refresh the page and try again.');
-        return;
-    }
-
-    try {
-        const options = {
-            margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `SEO-Audit-Report-${this.formData.clientName || 'Client'}-${new Date().toISOString().split('T')[0]}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, // <-- Increased scale for better quality
-                useCORS: true,
-                logging: false
-            },
-            jsPDF: { 
-                unit: 'in', 
-                format: 'a4', 
-                orientation: 'portrait'
-            },
-            pagebreak: { mode: ['css', 'legacy'] } // <-- ADD THIS LINE
-        };
-
-        const originalText = this.printReportBtn.textContent;
-        this.printReportBtn.textContent = 'Generating PDF...';
-        this.printReportBtn.disabled = true;
-
-        // Use the actual report element
-        html2pdf()
-            .set(options)
-            .from(reportElement)
-            .save()
-            .then(() => {
-                this.printReportBtn.textContent = originalText;
-                this.printReportBtn.disabled = false;
-            })
-            .catch((error) => {
-                console.error('PDF generation error:', error);
-                alert('Error generating PDF: ' + error.message);
-                this.printReportBtn.textContent = originalText;
-                this.printReportBtn.disabled = false;
-            });
-    } catch (error) {
-        console.error('PDF setup error:', error);
-        alert('Error setting up PDF generation: ' + error.message);
-    }
-}
     createSimplePDFContent() {
         // Create a temporary container for PDF content
         const pdfContainer = document.createElement('div');
@@ -1336,7 +1473,7 @@ printReport() {
         const websiteUrl = this.formData.websiteUrl || 'Website';
         const industry = this.formData.industry || 'Not specified';
         const scores = this.calculateScores();
-        
+
         // Create simple, reliable PDF content
         pdfContainer.innerHTML = `
             <div style="text-align: center; border-bottom: 2pt solid #667eea; padding-bottom: 1rem; margin-bottom: 2rem;">
@@ -1401,7 +1538,7 @@ printReport() {
         // Generate PDF-optimized HTML content
         const scores = this.calculateScores();
         const findings = this.generateFindings();
-        
+
         pdfContainer.innerHTML = `
             <div style="margin-bottom: 2rem;">
                 <div style="text-align: center; border-bottom: 2pt solid #667eea; padding-bottom: 1rem; margin-bottom: 2rem;">
@@ -1496,7 +1633,7 @@ printReport() {
                         <li style="margin-bottom: 0.5rem;"><strong>Content Quality Score:</strong> ${scores.content}/100 - ${this.getScoreDescription(scores.content)}</li>
                     </ul>
                     <p style="font-size: 10pt; color: #6c757d; margin-top: 1rem;">
-                        This comprehensive audit analyzed 63 different SEO factors to provide actionable insights for improving your website's search engine performance, user experience, and competitive positioning.
+                        This comprehensive audit evaluated 63 SEO factors to deliver clear insights for boosting search performance, user experience, and competitiveness.
                     </p>
                 </div>
             </div>
@@ -1543,7 +1680,7 @@ printReport() {
 
     createPDFRecommendations(findings) {
         const allRecommendations = findings.recommendations || [];
-        
+
         if (allRecommendations.length === 0) {
             return '';
         }
@@ -1660,7 +1797,7 @@ printReport() {
     generatePerformanceOverview(scores, industry) {
         const overallGrade = this.getScoreGrade(scores.overall);
         const industryContext = this.getIndustryContext(industry);
-        
+
         if (scores.overall >= 85) {
             return `Excellent SEO performance with an overall score of ${scores.overall}/100. The website demonstrates strong technical foundation and well-optimized on-page elements and high-quality content strategy. This strong foundation positions the site well for continued search engine success. ${industryContext}`;
         } else if (scores.overall >= 70) {

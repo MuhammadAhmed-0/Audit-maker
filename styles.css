@@ -645,10 +645,178 @@ body {
     display: none;
 }
 
-/* PDF generation will handle all formatting, no print styles needed */
+/* Clean Report Styles for PDF Generation */
+.clean-section {
+    margin-bottom: 2rem;
+    page-break-inside: avoid;
+    padding: 1rem 0;
+}
+
+.clean-section h3 {
+    color: #1a202c;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 2rem 0 1.5rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid #667eea;
+    page-break-after: avoid;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.clean-section h4 {
+    color: #2d3748;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 1.5rem 0 1rem 0;
+    page-break-after: avoid;
+}
+
+.clean-section p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+    color: #2d3748;
+    font-size: 11pt;
+    text-align: justify;
+}
+
+.clean-section ul {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.clean-section li {
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
+    font-size: 11pt;
+}
+
+.client-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+    margin-bottom: 2rem;
+    page-break-inside: avoid;
+    font-size: 11pt;
+}
+
+.client-info p {
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+}
+
+.client-info strong {
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.clean-finding {
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e2e8f0;
+    page-break-inside: avoid;
+}
+
+.clean-finding:last-child {
+    border-bottom: none;
+}
+
+.clean-finding h4 {
+    color: #2d3748;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    page-break-after: avoid;
+}
+
+.clean-recommendation {
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e2e8f0;
+    page-break-inside: avoid;
+}
+
+.clean-recommendation:last-child {
+    border-bottom: none;
+}
+
+.clean-recommendation h4 {
+    color: #2d3748;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    page-break-after: avoid;
+}
+
+.priority {
+    font-weight: normal;
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.simple-cta {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f7fafc;
+    border-radius: 6px;
+    border-left: 4px solid #667eea;
+    text-align: center;
+    page-break-inside: avoid;
+}
+
+.simple-cta h3 {
+    color: #1a202c;
+    margin-bottom: 1rem;
+}
+
+.simple-cta p {
+    margin-bottom: 0.75rem;
+}
+
+.page-break-before {
+    page-break-before: always;
+    break-before: page;
+}
+
+
+/* Enhanced Print Styles for Better PDF Output */
 @media print {
-  .findings-list li, .recommendation-item {
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
+    .clean-section {
+        page-break-inside: avoid;
+        margin-bottom: 1.5rem;
+        
+    }
+    
+    .score-overview {
+        page-break-inside: avoid;
+        page-break-after: always;
+    }
+    
+    .client-info {
+        page-break-inside: avoid;
+    }
+    
+    .clean-finding,
+    .clean-recommendation {
+        page-break-inside: avoid;
+    }
+    
+    .simple-cta {
+        page-break-inside: avoid;
+        page-break-before: auto;
+    }
+    
+    h3, h4 {
+        page-break-after: avoid;
+    }
+    
+    p {
+        orphans: 3;
+        widows: 3;
+    }
+    
+    .findings-list li, .recommendation-item {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
 }

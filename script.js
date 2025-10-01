@@ -1129,7 +1129,7 @@ class SEOAuditTool {
         return `
             <div class="simple-cta">
                 <h3>Next Steps</h3>
-                <p>For professional implementation of these SEO recommendations, contact Empire Digisol at empiredigisol.com</p>
+                <p>For professional implementation of these SEO recommendations, contact Empire Digisol at info@empiredigisol.com</p>
                 <p><strong>Ready to improve your search engine rankings? Get started today.</strong></p>
             </div>
         `;
